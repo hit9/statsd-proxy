@@ -24,7 +24,7 @@ main(int argc, const char *argv[])
 
     for (i = 0; i < num_threads; i++) {
         ctxs[i] = ctx_new(nodes, num_nodes, port);
-        pthread_create(&threads[i], NULL, &server_start, ctxs[i]);
+        pthread_create(&threads[i], NULL, &thread_start, ctxs[i]);
     }
 
     for (i = 0; i < num_threads; i++) {

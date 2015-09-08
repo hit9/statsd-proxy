@@ -21,7 +21,8 @@ enum {
     PROXY_EBIND = 2,    /* socket bind error */
 };
 
-int server_start(void *arg);
+void *thread_start(void *arg);
+int server_start(struct ctx *ctx);
 
 #if defined(__cplusplus)
 }

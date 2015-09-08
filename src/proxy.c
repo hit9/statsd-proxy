@@ -12,12 +12,21 @@
 #include "proxy.h"
 #include "log.h"
 
-int
-server_start(void *arg)
+/* Start proxy in a thread. */
+void *
+thread_start(void *arg)
 {
     struct ctx *ctx = arg;
+    if (ctx_init(ctx) == CTX_OK)
+        server_start(ctx); /* FIXME: deal the return codes */
+}
 
+/* Start server. */
+int
+server_start(struct ctx *ctx)
+{
     assert(ctx != NULL);
+    assert(ctx->sfd > 0);
 
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
@@ -27,12 +36,14 @@ server_start(void *arg)
     if (bind(ctx->sfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
         return PROXY_EBIND;
 
+    log_info("listening on 127.0.0.1:%d ..", ctx->port);
+
     int n;
     struct buf *buf = ctx->buf;
 
     ctx->state = CTX_SERVER_RUNNING;
 
-    for(;ctx->state != CTX_SERVER_STOPPED;) {
+    for(; ctx->state != CTX_SERVER_STOPPED; ) {
         while (1) {
             if (buf_grow(buf, buf->len + BUF_READ_UNIT) != BUF_OK)
                 return PROXY_ENOMEM;
@@ -42,8 +53,21 @@ server_start(void *arg)
                 break;
 
             buf->len += n;
-            log_info("%s\n", buf_str(buf));
+
+            if (relay_buf(ctx) != PROXY_OK)
+                log_warn("failed to relay data..");
+
             buf_clear(buf);  /* !important */
         }
     }
+
+    return PROXY_OK;
+}
+
+/* Relay buffer to backends. */
+int
+relay_buf(struct ctx *ctx)
+{
+    assert(ctx != NULL);
+
 }

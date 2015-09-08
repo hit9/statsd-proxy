@@ -29,6 +29,7 @@ main(int argc, const char *argv[])
 
     for (i = 0; i < num_threads; i++) {
          pthread_join(threads[i], NULL);
+         ctx_free(ctxs[i]);
     }
 
     log_close();

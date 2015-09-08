@@ -92,5 +92,5 @@ relay_buf(struct ctx *ctx)
     }
 
     buf_lrm(ctx->buf, n_parsed);
-    return 0;  // FIXME
+    return PRXOY_OK;
 }

@@ -1,4 +1,4 @@
-src/proxy
+src/statsd-proxy
 *.o
 *.log
 *.sw[opn]

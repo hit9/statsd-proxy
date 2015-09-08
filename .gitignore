@@ -1,0 +1,4 @@
+src/proxy
+*.o
+*.log
+*.sw[opn]

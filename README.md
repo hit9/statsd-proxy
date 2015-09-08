@@ -1,5 +1,9 @@
 Proxy for etsy/statsd.
 
+REQUIREMENTS
+
+    * Linux >= 3.9 (the `SO_REUSEPORT` option)
+
 BUILD
 
     $ make

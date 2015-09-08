@@ -4,6 +4,10 @@
  * Proxy for etsy/statsd.
  */
 
+#ifndef __linux__
+#error "statsd-proxy requires linux(3.9+)"
+#endif
+
 #include <stdio.h>
 #include <pthread.h>
 

@@ -4,13 +4,15 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "ctx.h"
 #include "ketama.h"
-#include "proxy.h"
 #include "log.h"
+#include "proxy.h"
+#include "parser.h"
 
 /* Start proxy in a thread. */
 void *
@@ -55,9 +57,7 @@ server_start(struct ctx *ctx)
             buf->len += n;
 
             if (relay_buf(ctx) != PROXY_OK)
-                log_warn("failed to relay data..");
-
-            buf_clear(buf);  /* !important */
+                log_warn("failed to relay data");
         }
     }
 
@@ -69,5 +69,28 @@ int
 relay_buf(struct ctx *ctx)
 {
     assert(ctx != NULL);
+    assert(ctx->buf != NULL);
 
+    struct parser_result result;
+    int n, n_parsed = 0;
+    char *data = ctx->buf->data;
+    size_t len = ctx->buf->len;
+    struct ketama_node node;
+    struct sockaddr_in addr;
+
+    while ((n = parse(&result, data, len)) > 0) {
+        node = ketama_node_get(ctx->ring, result.key, result.len);
+        addr = ctx->addrs[node.idx];
+
+        if (sendto(ctx->cfd, result.block, result.blen, 0,
+                    (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) < 0)
+            log_warn("failed to send data");
+
+        data += n;
+        len -= n;
+        n_parsed += n;
+    }
+
+    buf_lrm(ctx->buf, n_parsed);
+    return 0;  // FIXME
 }

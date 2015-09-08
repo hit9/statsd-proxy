@@ -8,9 +8,10 @@ SRC     = buf.c\
 		  ctx.c\
 		  ketama.c\
 		  log.c\
-		  utils.c\
+		  parser.c\
 		  proxy.c\
-		  statsd-proxy.c
+		  statsd-proxy.c\
+		  utils.c\
 
 OBJ     = $(SRC:c=o)
 BIN     = $(NAME)

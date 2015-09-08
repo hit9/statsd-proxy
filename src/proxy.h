@@ -13,7 +13,8 @@
 extern "C" {
 #endif
 
-#define BUF_READ_UNIT   1024
+#define BUF_READ_UNIT          1024
+#define BUF_UNFINISH_MAX       1*1024*1024  /* unfinished data max size 1mb */
 
 enum {
     PROXY_OK = 0,       /* operation is ok */
@@ -23,6 +24,7 @@ enum {
 
 void *thread_start(void *arg);
 int server_start(struct ctx *ctx);
+void relay_buf(struct ctx *ctx);
 
 #if defined(__cplusplus)
 }

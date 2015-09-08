@@ -56,16 +56,16 @@ server_start(struct ctx *ctx)
 
             buf->len += n;
 
-            if (relay_buf(ctx) != PROXY_OK)
-                log_warn("failed to relay data");
+            relay_buf(ctx);
         }
     }
 
     return PROXY_OK;
 }
 
-/* Relay buffer to backends. */
-int
+/* Relay buffer to backends. Note: all network etc. errors on single
+ * relay will be ignored. */
+void
 relay_buf(struct ctx *ctx)
 {
     assert(ctx != NULL);
@@ -91,6 +91,11 @@ relay_buf(struct ctx *ctx)
         n_parsed += n;
     }
 
+    /* `buf_lrm` won't clear unifished data */
     buf_lrm(ctx->buf, n_parsed);
-    return PRXOY_OK;
+
+    /* but we should clear it if the current data
+     * is too large */
+    if (ctx->buf->len > BUF_UNFINISH_MAX)
+        buf_clear(ctx->buf);
 }

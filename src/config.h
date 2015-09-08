@@ -9,11 +9,12 @@
 
 #include "ketama.h"
 
-unsigned short port = 8125;
-size_t num_threads = 4;
-size_t num_nodes = 1;
-struct ketama_node nodes[] = {
-    { "127.0.0.1:8126", 1, NULL, 0 }
+static unsigned short port = 8125;
+static size_t num_threads = 4;
+static size_t num_nodes = 2;
+static struct ketama_node nodes[] = {
+    { "127.0.0.1:8126", 1},
+    { "127.0.0.1:8127", 1},
 };
 
 #endif

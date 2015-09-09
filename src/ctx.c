@@ -105,11 +105,11 @@ ctx_init(struct ctx *ctx)
     struct sockaddr_in *addrs = ctx->addrs;
     int i;
     unsigned short bport = 8125;
-    char bhost[17] = {0}; /* 255.255.255.255 (4 * 4) */
+    char bhost[17] = {0}; /* 255.255.255.255 (15) */
     struct ketama_node *nodes = ctx->nodes;
 
     for (i = 0; i < ctx->num_nodes; i++) {
-        if (strlen(nodes[i].key) > 27)  /* 16 + 10 = 26 */
+        if (strlen(nodes[i].key) > 26)  /* 15 + 10 + 1 = 26 */
             return CTX_EBADFMT;
 
         if (sscanf(nodes[i].key, "%[^:]:%hu", bhost, &bport) != 2)

@@ -19,8 +19,14 @@ void *
 thread_start(void *arg)
 {
     struct ctx *ctx = arg;
-    if (ctx_init(ctx) == CTX_OK)
-        server_start(ctx); /* FIXME: deal the return codes */
+    int err;
+
+    if ((err = ctx_init(ctx)) == CTX_OK) {
+        server_start(ctx);
+    } else {
+        log_error(proxy_errors[err]);
+        exit(err);
+    }
 }
 
 /* Start server. */

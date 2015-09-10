@@ -24,8 +24,7 @@ thread_start(void *arg)
     if ((err = ctx_init(ctx)) == CTX_OK) {
         server_start(ctx);
     } else {
-        log_error(proxy_errors[err]);
-        exit(err);
+        exit(1);
     }
 }
 
@@ -41,10 +40,12 @@ server_start(struct ctx *ctx)
     addr.sin_addr.s_addr=htonl(INADDR_ANY);
     addr.sin_port=htons(ctx->port);
 
-    if (bind(ctx->sfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    if (bind(ctx->sfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        log_error("failed to bind server on port %d", ctx->port);
         return PROXY_EBIND;
+    }
 
-    log_info("listening on 127.0.0.1:%d ..", ctx->port);
+    log_info("listening on udp://127.0.0.1:%d..", ctx->port);
 
     int n;
     struct buf *buf = ctx->buf;

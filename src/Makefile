@@ -6,6 +6,8 @@ CFLAGS  =
 LDFLAGS = -pthread
 SRC     = buf.c\
 		  ctx.c\
+		  cfg.c\
+		  config.c\
 		  ketama.c\
 		  log.c\
 		  md5.c\

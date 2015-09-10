@@ -119,7 +119,6 @@ ctx_init(struct ctx *ctx)
         addrs[i].sin_family = AF_INET;
         addrs[i].sin_addr.s_addr = inet_addr(bhost);
         addrs[i].sin_port = htons(bport);
-        log_info("load node %s:%d done.", bhost, bport);
     }
 
     /* Init client socket */

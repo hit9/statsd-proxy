@@ -97,7 +97,7 @@ relay_buf(struct ctx *ctx)
         n_parsed += n;
     }
 
-    /* `buf_lrm` won't clear unifished data */
+    /* `buf_lrm` won't clear unfinished data */
     buf_lrm(ctx->buf, n_parsed);
 
     /* but we should clear it if the current data

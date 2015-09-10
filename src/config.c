@@ -142,7 +142,7 @@ config_init(struct config *c, const char *filename)
             struct ketama_node node = c->nodes[c->num_nodes++];
             sprintf(node.key, "%s:%hu", host, port);
             node.weight = weight;
-            log_info("load statsd node %s:%hu:%hu done.", host, port, weight);
+            log_info("load tcp://%s:%hu:%hu done.", host, port, weight);
         }
     }
 

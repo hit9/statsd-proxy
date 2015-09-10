@@ -22,12 +22,6 @@ enum {
     PROXY_EBIND = 2,    /* socket bind error */
 };
 
-static const char *proxy_errors[] = {
-    "operation is ok",
-    "no memory ok",
-    "socket bind error",
-};
-
 void *thread_start(void *arg);
 int server_start(struct ctx *ctx);
 void relay_buf(struct ctx *ctx);

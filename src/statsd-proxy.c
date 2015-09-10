@@ -20,6 +20,7 @@
 
 #define STATSD_PROXY_VERSION    "0.0.3"
 
+void version(void);
 void usage(void);
 void start(struct config *config);
 
@@ -28,6 +29,12 @@ main(int argc, const char *argv[])
 {
     if (argc != 2)
         usage();
+
+    if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)
+        usage();
+
+    if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0)
+        version();
 
     log_open("statsd-proxy", NULL);
 
@@ -47,10 +54,16 @@ main(int argc, const char *argv[])
 }
 
 void
+version(void)
+{
+    fprintf(stderr, "statsd-proxy@%s\n", STATSD_PROXY_VERSION);
+    exit(1);
+}
+
+void
 usage(void)
 {
     fprintf(stderr, "usage: ./statsd-proxy /path/to/config.cfg\n");
-    fprintf(stderr, "version: %s\n", STATSD_PROXY_VERSION);
     exit(1);
 }
 

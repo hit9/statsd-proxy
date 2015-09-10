@@ -2,3 +2,4 @@ src/statsd-proxy
 *.o
 *.log
 *.sw[opn]
+test.*

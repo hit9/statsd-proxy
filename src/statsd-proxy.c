@@ -63,7 +63,11 @@ version(void)
 void
 usage(void)
 {
-    fprintf(stderr, "usage: ./statsd-proxy /path/to/config.cfg\n");
+    fprintf(stderr, "Usage:\n");
+    fprintf(stderr, "  ./statsd-proxy /path/to/config.cfg\n\n");
+    fprintf(stderr, "Options:\n");
+    fprintf(stderr, "  -h, --help        Show this message\n");
+    fprintf(stderr, "  -v, --version     Show version\n");
     exit(1);
 }
 

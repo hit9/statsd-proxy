@@ -8,6 +8,7 @@ SRC     = buf.c\
 		  ctx.c\
 		  ketama.c\
 		  log.c\
+		  md5.c\
 		  parser.c\
 		  proxy.c\
 		  statsd-proxy.c\

@@ -132,17 +132,17 @@ config_init(struct config *c, const char *filename)
 
             char host[cfg.val_len];
             unsigned short port;
-            unsigned short weight;
+            unsigned int weight;
 
-            if (sscanf(s, "%[^:]:%hu:%hu", host, &port, &weight) != 3) {
+            if (sscanf(s, "%[^:]:%hu:%u", host, &port, &weight) != 3) {
                 log_error("invalid node at line %d", cfg.lineno);
                 return CONFIG_EVALUE;
             }
 
-            struct ketama_node node = c->nodes[c->num_nodes++];
-            sprintf(node.key, "%s:%hu", host, port);
-            node.weight = weight;
-            log_info("load udp://%s:%hu:%hu done.", host, port, weight);
+            sprintf((c->nodes[c->num_nodes]).key, "%s:%hu", host, port);
+            (c->nodes[c->num_nodes]).weight = weight;
+            c->num_nodes++;
+            log_info("load udp://%s:%hu:%u done.", host, port, weight);
         }
     }
 

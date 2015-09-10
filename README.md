@@ -14,7 +14,7 @@ udp port. But we found that this nodejs proxy is lossing packets, even to
 Cpus are idle but packets are lossing, in our case, one api call makes one
 statsd request, maybe the single udp socket is too busy.
 
-We tried to find use `SO_REUSEPORT` on the original nodejs proxy, this enables
+We tried to use `SO_REUSEPORT` on the original nodejs proxy, this enables
 us to bind multiple udp sockets on a single port, but nodejs(or libuv) has
 disabled this option, and golang just dosen't have a method `setsockopt()`.
 

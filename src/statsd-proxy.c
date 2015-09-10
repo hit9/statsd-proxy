@@ -36,6 +36,9 @@ main(int argc, const char *argv[])
     if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0)
         version();
 
+    if (argv[1][0] == '-')
+        usage();
+
     log_open("statsd-proxy", NULL);
 
     struct config *config = config_new();

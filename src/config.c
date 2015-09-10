@@ -100,28 +100,36 @@ config_init(struct config *c, const char *filename)
 
         if (strncmp("port", cfg.key, cfg.key_len) == 0) {
             memcpy(s, cfg.val, cfg.val_len);
-            c->port = (unsigned short)strtol(s, NULL, 10);
-            if (c->port == 0) {
+            long port = strtol(s, NULL, 10);
+
+            if (port <= 0 || port > 65535) {
                 log_error("invalid port at line %d", cfg.lineno);
                 return CONFIG_EVALUE;
             }
+
+            c->port = (unsigned short)port;
         }
 
         if (strncmp("num_threads", cfg.key, cfg.key_len) == 0) {
             memcpy(s, cfg.val, cfg.val_len);
-            c->num_threads = (size_t)strtol(s, NULL, 10);
-            if (c->num_threads == 0) {
+            long num_threads = (size_t)strtol(s, NULL, 10);
+
+            if (num_threads <= 0 || num_threads > 1024) {
                 log_error("invalid num_threads at line %d", cfg.lineno);
                 return CONFIG_EVALUE;
             }
+
+            c->num_threads = (unsigned short)num_threads;
         }
 
         if (strncmp("node", cfg.key, cfg.key_len) == 0) {
             memcpy(s, cfg.val, cfg.val_len);
+
             if (strlen(s) >= KETAMA_NODE_KEY_LEN_MAX) {
                 log_error("node address too large at line %d", cfg.lineno);
                 return CONFIG_EVALUE;
             }
+
             char host[cfg.val_len];
             unsigned short port;
             unsigned short weight;

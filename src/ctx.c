@@ -29,7 +29,7 @@ ctx_new(struct ketama_node *nodes, size_t num_nodes, unsigned short port)
     if (ctx == NULL)
         return NULL;
 
-    /* Create buf */
+    /* Create recv buf (for this thread) */
     struct buf *buf = buf_new(NULL);
 
     if (buf == NULL) {
@@ -56,6 +56,32 @@ ctx_new(struct ketama_node *nodes, size_t num_nodes, unsigned short port)
         return NULL;
     }
 
+    /* Create send bufs (for each node)
+     * note: for threading safe reasons, we cannot assign `node.data` and
+     * arg `nodes` */
+    struct buf **sbufs = malloc(sizeof(struct buf *) * num_nodes);
+
+    if (sbufs == NULL) {
+        ketama_ring_free(ring);
+        free(addrs);
+        free(buf);
+        free(ctx);
+        return NULL;
+    }
+
+    int i;
+
+    for (i = 0; i < num_nodes; i++) {
+        if ((sbufs[i] = buf_new(NULL)) == NULL) {
+            free(sbufs);
+            ketama_ring_free(ring);
+            free(addrs);
+            free(buf);
+            free(ctx);
+            return NULL;
+        }
+    }
+
     /* Assign all attrs */
     ctx->buf = buf;
     ctx->cfd = -1;
@@ -64,7 +90,9 @@ ctx_new(struct ketama_node *nodes, size_t num_nodes, unsigned short port)
     ctx->port = port;
     ctx->addrs = addrs;
     ctx->nodes = nodes;
+    ctx->sbufs = sbufs;
     ctx->num_nodes = num_nodes;
+    log_debug("ctx created.");
     return ctx;
 }
 
@@ -88,6 +116,13 @@ ctx_free(struct ctx *ctx)
 
         if (ctx->addrs != NULL)
             free(ctx->addrs);
+
+        if (ctx->sbufs != NULL) {
+            int i;
+            for (i = 0; i < ctx->num_nodes; i++)
+                buf_free(ctx->sbufs[i]);
+            free(ctx->sbufs);
+        }
 
         free(ctx);
     }

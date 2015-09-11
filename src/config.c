@@ -141,6 +141,7 @@ config_init(struct config *c, const char *filename)
 
             sprintf((c->nodes[c->num_nodes]).key, "%s:%hu", host, port);
             (c->nodes[c->num_nodes]).weight = weight;
+            (c->nodes[c->num_nodes]).idx = c->num_nodes;
             c->num_nodes++;
             log_info("load udp://%s:%hu:%u done.", host, port, weight);
         }
@@ -153,5 +154,7 @@ config_init(struct config *c, const char *filename)
                 cfg.lineno);
         return CONFIG_EBADFMT;
     }
+
+    log_debug("config load done.");
     return CONFIG_OK;
 }

@@ -31,10 +31,11 @@ struct ctx {
     int sfd;                    /* server udp socket fd */
     unsigned short port;        /* server port to bind */
     size_t num_nodes;           /* number of ketama nodes */
-    struct ketama_node *nodes;  /* ketama nodes ref (read only) */
+    struct ketama_node *nodes;  /* ketama nodes ref (shared by multiple threads, read only) */
     struct ketama_ring *ring;   /* ketama ring */
     struct sockaddr_in *addrs;  /* backend addresses */
     struct buf *buf;            /* buffer to read socket */
+    struct buf **sbufs;         /* buffers to send to socket */
 
 };
 

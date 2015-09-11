@@ -22,7 +22,7 @@ parse(struct parser_result *result, char *data, size_t len)
                     result->key = data;
                     result->len = j; /* exclude ':'*/
                     result->block = data;
-                    result->blen = i + 1;
+                    result->blen = i; /* exclude '\n' */
                     return i + 1;
                 }
             }

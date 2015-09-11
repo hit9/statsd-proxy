@@ -13,8 +13,10 @@
 extern "C" {
 #endif
 
-#define BUF_READ_UNIT          1024*8       /* 8kb */
-#define BUF_UNFINISH_MAX       1*1024*1024  /* unfinished data max size 1mb */
+#define BUF_RECV_UNIT          64*1024    /* recv packet size limit: 64kb */
+#define BUF_RECV_CAP_MAX       1024*1024  /* recv buffer memory limit */
+#define BUF_SEND_UNIT          32*1024    /* send packet size limit: 32kb */
+#define BUF_SEND_CAP_MAX       1024*1024  /* send buffer memory limit */
 
 enum {
     PROXY_OK = 0,       /* operation is ok */
@@ -24,7 +26,8 @@ enum {
 
 void *thread_start(void *arg);
 int server_start(struct ctx *ctx);
-void relay_buf(struct ctx *ctx);
+int relay_buf(struct ctx *ctx);
+void send_buf(struct ctx *ctx, struct sockaddr_in addr, struct buf *buf);
 
 #if defined(__cplusplus)
 }

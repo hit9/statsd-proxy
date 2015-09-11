@@ -40,6 +40,7 @@ main(int argc, const char *argv[])
         usage();
 
     log_open("statsd-proxy", NULL);
+    log_setlevel(LOG_INFO);
 
     struct config *config = config_new();
 
@@ -93,6 +94,8 @@ start(struct config *config)
             exit(1);
         pthread_create(&threads[i], NULL, &thread_start, ctxs[i]);
     }
+
+    log_debug("server started.");
 
     for (i = 0; i < config->num_threads; i++) {
          pthread_join(threads[i], NULL);

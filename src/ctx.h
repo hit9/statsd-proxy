@@ -15,9 +15,6 @@
 extern "C" {
 #endif
 
-#define CTX_SERVER_STOPPED     0
-#define CTX_SERVER_RUNNING     1
-
 enum {
     CTX_OK = 0,      /* operation is ok */
     CTX_ENOMEM = 1,  /* no memory error */
@@ -26,7 +23,6 @@ enum {
 };
 
 struct ctx {
-    int state;                  /* CTX_SERVER_(STOPPED|RUNNING)*/
     int cfd;                    /* client udp socket fd */
     int sfd;                    /* server udp socket fd */
     unsigned short port;        /* server port to bind */

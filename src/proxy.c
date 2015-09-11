@@ -7,8 +7,10 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <sys/socket.h>
+#include <sys/timerfd.h>
 #include <netinet/in.h>
 #include "ctx.h"
+#include "event.h"
 #include "ketama.h"
 #include "log.h"
 #include "proxy.h"
@@ -37,6 +39,39 @@ thread_start(void *arg)
     exit(1);
 }
 
+/* Recv into buffer on data */
+void
+recv_buf(struct event_loop *loop, int fd, int mask, void *data)
+{
+    struct ctx *ctx = data;
+    int n;
+    struct buf *buf = ctx->buf;
+
+    if (buf_grow(buf, buf->len + BUF_RECV_UNIT) != BUF_OK) {
+        log_error("no memory");
+        exit(1);
+    }
+
+    if ((n = recv(ctx->sfd, buf->data + buf->len,
+                    (buf->cap - buf->len) * sizeof(char), 0)) < 0) {
+        log_warn("socket recv error, skipping..");
+        return;
+    }
+
+    buf->len += n;
+
+    if (relay_buf(ctx) != PROXY_OK) {
+        log_error("no memory");
+        exit(1);
+    }
+
+    if (buf->cap >= BUF_RECV_CAP_MAX) {
+        buf_clear(buf);
+    } else {
+        buf->len = 0;
+    }
+}
+
 /* Start server. */
 int
 server_start(struct ctx *ctx)
@@ -55,33 +90,10 @@ server_start(struct ctx *ctx)
 
     log_info("listening on udp://127.0.0.1:%d..", ctx->port);
 
-    int n;
-    struct buf *buf = ctx->buf;
-
-    ctx->state = CTX_SERVER_RUNNING;
-
-    for(; ctx->state != CTX_SERVER_STOPPED; ) {
-        if (buf_grow(buf, buf->len + BUF_RECV_UNIT) != BUF_OK)
-            return PROXY_ENOMEM;
-
-        if ((n = recv(ctx->sfd, buf->data + buf->len,
-                        (buf->cap - buf->len) * sizeof(char), 0)) < 0) {
-            log_warn("socket recv error, skipping..");
-            break;
-        }
-
-        buf->len += n;
-
-        if (relay_buf(ctx) != PROXY_OK)
-            return PROXY_ENOMEM;
-
-        if (buf->cap >= BUF_RECV_CAP_MAX) {
-            buf_clear(buf);
-        } else {
-            buf->len = 0;
-        }
-    }
-
+    struct event_loop *loop = event_loop_new(1024);
+    event_add_in(loop, ctx->sfd, &recv_buf, (void *)ctx);
+    event_loop_start(loop, -1);
+    event_loop_free(loop);
     return PROXY_OK;
 }
 

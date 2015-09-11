@@ -8,6 +8,7 @@ SRC     = buf.c\
 		  ctx.c\
 		  cfg.c\
 		  config.c\
+		  event.c\
 		  ketama.c\
 		  log.c\
 		  md5.c\

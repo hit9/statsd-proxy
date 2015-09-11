@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <getopt.h>
 
 #include "log.h"
 #include "proxy.h"
@@ -25,20 +26,44 @@ void usage(void);
 void start(struct config *config);
 
 int
-main(int argc, const char *argv[])
+main(int argc, char *argv[])
 {
-    if (argc != 2)
-        usage();
-
-    if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)
-        usage();
-
-    if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0)
-        version();
-
     log_open("statsd-proxy", NULL);
 
-    if (argv[1][0] == '-')
+    char *filename;
+
+    const char *short_opt = "hvdf:";
+    struct option long_opt[] = {
+        {"help",       no_argument,       NULL, 'h'},
+        {"version",    no_argument,       NULL, 'v'},
+        {"debug",      no_argument,       NULL, 'd'},
+        {"file",       required_argument, NULL, 'f'},
+        {NULL,         0,                 NULL, 0},
+    };
+
+    int c;
+    while ((c = getopt_long(argc, argv, short_opt, long_opt, NULL)) != -1) {
+        switch (c) {
+            case 'h':
+            case ':':
+            case '?':
+                usage();
+                break;
+            case 'v':
+                version();
+                break;
+            case 'f':
+                filename = optarg;
+                break;
+            case 'd':
+                log_setlevel(LOG_DEBUG);
+                break;
+            default:
+                usage();
+        };
+    }
+
+    if (argc == 1 || optind < argc)
         usage();
 
     struct config *config = config_new();
@@ -46,7 +71,7 @@ main(int argc, const char *argv[])
     if (config == NULL)
         exit(1);
 
-    if (config_init(config, argv[1]) != CONFIG_OK)
+    if (config_init(config, filename) != CONFIG_OK)
         exit(1);
 
     start(config);
@@ -67,10 +92,11 @@ void
 usage(void)
 {
     fprintf(stderr, "Usage:\n");
-    fprintf(stderr, "  ./statsd-proxy /path/to/config.cfg\n\n");
+    fprintf(stderr, "  ./statsd-proxy -f ./path/to/config.cfg\n");
     fprintf(stderr, "Options:\n");
     fprintf(stderr, "  -h, --help        Show this message\n");
     fprintf(stderr, "  -v, --version     Show version\n");
+    fprintf(stderr, "  -d, --debug       Enable debug logging\n");
     fprintf(stderr, "Copyright (c) https://github.com/hit9/statsd-proxy\n");
     exit(1);
 }
@@ -97,8 +123,6 @@ start(struct config *config)
             exit(1);
         pthread_create(&threads[i], NULL, &thread_start, ctxs[i]);
     }
-
-    log_debug("server started.");
 
     for (i = 0; i < config->num_threads; i++) {
          pthread_join(threads[i], NULL);

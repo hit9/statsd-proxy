@@ -111,7 +111,8 @@ server_start(struct ctx *ctx)
 
 /* Util to send buf to addr */
 void
-send_buf(struct ctx *ctx, struct sockaddr_in addr, struct buf *sbuf)
+send_buf(struct ctx *ctx, struct sockaddr_in addr, struct buf *sbuf,
+        char *addr_s)
 {
     assert(ctx != NULL);
     assert(sbuf != NULL);
@@ -121,6 +122,8 @@ send_buf(struct ctx *ctx, struct sockaddr_in addr, struct buf *sbuf)
 
     if (n < 0)
         log_warn("send => an error occurred, skipping..");
+
+    log_debug("flush %d bytes =>  %s", n, addr_s);
 
     if (sbuf->cap >= BUF_SEND_CAP_MAX) {
         buf_clear(sbuf);
@@ -163,7 +166,7 @@ relay_buf(struct ctx *ctx)
 
         /* flush buffer if this buf is large enough */
         if (sbuf->len >= BUF_SEND_UNIT)
-            send_buf(ctx, addr, sbuf);
+            send_buf(ctx, addr, sbuf, node.key);
 
         data += n;
         len -= n;
@@ -186,7 +189,7 @@ flush_buf(struct event_loop *loop, int fd, int mask, void *data)
         sbuf = ctx->sbufs[i];
         addr = ctx->addrs[i];
         if (sbuf->len > 0)
-            send_buf(ctx, addr, sbuf);
+            send_buf(ctx, addr, sbuf, ctx->nodes[i].key);
     }
 
     if (set_timerfd(ctx->tfd, ctx->flush_interval) < 0) {

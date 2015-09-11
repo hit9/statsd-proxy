@@ -96,7 +96,6 @@ ctx_new(struct ketama_node *nodes, size_t num_nodes, unsigned short port,
     ctx->sbufs = sbufs;
     ctx->num_nodes = num_nodes;
     ctx->flush_interval = flush_interval;
-    log_debug("ctx created.");
     return ctx;
 }
 

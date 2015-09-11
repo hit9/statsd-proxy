@@ -161,11 +161,9 @@ relay_buf(struct ctx *ctx)
         if (buf_put(sbuf, result.block, result.blen) != BUF_OK)
             return PROXY_ENOMEM;
 
-        if (sbuf->len >= BUF_SEND_UNIT) {
-            /* flush buffer if this buf is large enough */
-            log_info("flush to node %s..", node.key);
+        /* flush buffer if this buf is large enough */
+        if (sbuf->len >= BUF_SEND_UNIT)
             send_buf(ctx, addr, sbuf);
-        }
 
         data += n;
         len -= n;
@@ -187,10 +185,8 @@ flush_buf(struct event_loop *loop, int fd, int mask, void *data)
     for (i = 0; i < ctx->num_nodes; i++) {
         sbuf = ctx->sbufs[i];
         addr = ctx->addrs[i];
-        if (sbuf->len > 0) {
-            log_info("flush to node %s..", ctx->nodes[i].key);
+        if (sbuf->len > 0)
             send_buf(ctx, addr, sbuf);
-        }
     }
 
     if (set_timerfd(ctx->tfd, ctx->flush_interval) < 0) {

@@ -92,7 +92,10 @@ server_start(struct ctx *ctx)
 
     log_info("listening on udp://127.0.0.1:%d..", ctx->port);
 
-    set_timerfd(ctx->tfd, ctx->flush_interval);
+    if (set_timerfd(ctx->tfd, ctx->flush_interval) < 0) {
+        log_error("failed to set timer for next interval!");
+        exit(1);
+    }
 
     struct event_loop *loop = event_loop_new(2);
 
@@ -188,7 +191,10 @@ flush_buf(struct event_loop *loop, int fd, int mask, void *data)
         }
     }
 
-    set_timerfd(ctx->tfd, ctx->flush_interval);
+    if (set_timerfd(ctx->tfd, ctx->flush_interval) < 0) {
+        log_error("failed to set timer for next interval!");
+        exit(1);
+    }
 }
 
 int

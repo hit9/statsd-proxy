@@ -46,8 +46,8 @@ server_start(struct ctx *ctx)
 
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr=htonl(INADDR_ANY);
-    addr.sin_port=htons(ctx->port);
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons(ctx->port);
 
     if (bind(ctx->sfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         return PROXY_EBIND;

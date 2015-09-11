@@ -14,8 +14,6 @@
 #include "ketama.h"
 #include "log.h"
 
-#define CONFIG_READ_UNIT    1024
-
 struct config *
 config_new(void)
 {
@@ -93,13 +91,18 @@ config_init(struct config *c, const char *filename)
     int cfg_err;
     c->num_nodes = 0;
 
+    char s[CONFIG_VAL_LEN_MAX] = {0};
+
     while ((cfg_err = cfg_get(&cfg)) == CFG_OK) {
-        size_t s_len = cfg.val_len + 1;
-        char s[s_len];
-        memset(s, s_len, 0);
+        memset(s, 0, CONFIG_VAL_LEN_MAX);
+        memcpy(s, cfg.val, cfg.val_len);
+
+        if (cfg.val_len > CONFIG_VAL_LEN_MAX) {
+            log_error("value is too large at line %d", cfg.lineno);
+            return CONFIG_EVALUE;
+        }
 
         if (strncmp("port", cfg.key, cfg.key_len) == 0) {
-            memcpy(s, cfg.val, cfg.val_len);
             long port = strtol(s, NULL, 10);
 
             if (port <= 0 || port > 65535) {
@@ -111,8 +114,7 @@ config_init(struct config *c, const char *filename)
         }
 
         if (strncmp("num_threads", cfg.key, cfg.key_len) == 0) {
-            memcpy(s, cfg.val, cfg.val_len);
-            long num_threads = (size_t)strtol(s, NULL, 10);
+            long num_threads = strtol(s, NULL, 10);
 
             if (num_threads <= 0 || num_threads > 1024) {
                 log_error("invalid num_threads at line %d", cfg.lineno);
@@ -123,8 +125,6 @@ config_init(struct config *c, const char *filename)
         }
 
         if (strncmp("node", cfg.key, cfg.key_len) == 0) {
-            memcpy(s, cfg.val, cfg.val_len);
-
             if (strlen(s) >= KETAMA_NODE_KEY_LEN_MAX) {
                 log_error("node address too large at line %d", cfg.lineno);
                 return CONFIG_EVALUE;

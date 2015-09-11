@@ -11,6 +11,9 @@
 
 #define KETAMA_NUM_NODES_MAX        1024
 #define KETAMA_NODE_KEY_LEN_MAX     32
+#define CONFIG_READ_UNIT            1024
+#define CONFIG_VAL_LEN_MAX          1024
+
 
 enum {
     CONFIG_OK = 0,

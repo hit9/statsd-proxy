@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#define BUF_READ_UNIT          1024*16      /* 16kb */
+#define BUF_READ_UNIT          1024*8       /* 8kb */
 #define BUF_UNFINISH_MAX       1*1024*1024  /* unfinished data max size 1mb */
 
 enum {

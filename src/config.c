@@ -112,6 +112,7 @@ config_init(struct config *c, const char *filename)
             }
 
             c->port = (unsigned short)port;
+            log_debug("config.port => %hu", c->port);
         }
 
         if (strncmp("num_threads", cfg.key, cfg.key_len) == 0) {
@@ -123,6 +124,7 @@ config_init(struct config *c, const char *filename)
             }
 
             c->num_threads = (unsigned short)num_threads;
+            log_debug("config.num_threads => %hu", c->num_threads);
         }
 
         if (strncmp("flush_interval", cfg.key, cfg.key_len) == 0) {
@@ -134,6 +136,7 @@ config_init(struct config *c, const char *filename)
             }
 
             c->flush_interval = (uint32_t)flush_interval;
+            log_debug("config.flush_interval => %ldms", c->flush_interval);
         }
 
         if (strncmp("node", cfg.key, cfg.key_len) == 0) {
@@ -155,7 +158,7 @@ config_init(struct config *c, const char *filename)
             (c->nodes[c->num_nodes]).weight = weight;
             (c->nodes[c->num_nodes]).idx = c->num_nodes;
             c->num_nodes++;
-            log_info("load udp://%s:%hu:%u done.", host, port, weight);
+            log_info("config.node#%d udp://%s:%hu:%u", c->num_nodes, host, port, weight);
         }
     }
 

@@ -36,11 +36,10 @@ main(int argc, const char *argv[])
     if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0)
         version();
 
+    log_open("statsd-proxy", NULL);
+
     if (argv[1][0] == '-')
         usage();
-
-    log_open("statsd-proxy", NULL);
-    log_setlevel(LOG_INFO);
 
     struct config *config = config_new();
 
@@ -72,6 +71,7 @@ usage(void)
     fprintf(stderr, "Options:\n");
     fprintf(stderr, "  -h, --help        Show this message\n");
     fprintf(stderr, "  -v, --version     Show version\n");
+    fprintf(stderr, "Copyright (c) https://github.com/hit9/statsd-proxy\n");
     exit(1);
 }
 

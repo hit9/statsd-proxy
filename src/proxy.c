@@ -90,7 +90,7 @@ server_start(struct ctx *ctx)
     if (bind(ctx->sfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
         return PROXY_EBIND;
 
-    log_info("listening on udp://127.0.0.1:%d..", ctx->port);
+    log_info("serving on udp://127.0.0.1:%d..", ctx->port);
 
     if (set_timerfd(ctx->tfd, ctx->flush_interval) < 0) {
         log_error("failed to set timer for next interval!");

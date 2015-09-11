@@ -25,8 +25,9 @@ enum {
 
 struct config {
     unsigned short port;
-    size_t num_threads;
+    unsigned short num_threads;
     size_t num_nodes;
+    uint32_t flush_interval;
     struct ketama_node nodes[KETAMA_NUM_NODES_MAX];
 };
 

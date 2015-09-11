@@ -8,11 +8,15 @@
 #include <pthread.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <strings.h>
 #include "ctx.h"
+#include "event.h"
 #include "ketama.h"
 #include "log.h"
 #include "proxy.h"
 #include "parser.h"
+
+int set_timerfd(int tfd, uint32_t ms);
 
 /* Start proxy in a thread. */
 void *
@@ -37,51 +41,71 @@ thread_start(void *arg)
     exit(1);
 }
 
+/* Recv into buffer on data */
+void
+recv_buf(struct event_loop *loop, int fd, int mask, void *data)
+{
+    struct ctx *ctx = data;
+    int n;
+    struct buf *buf = ctx->buf;
+
+    if (buf_grow(buf, buf->len + BUF_RECV_UNIT) != BUF_OK) {
+        log_error("no memory");
+        exit(1);
+    }
+
+    if ((n = recv(ctx->sfd, buf->data + buf->len,
+                    (buf->cap - buf->len) * sizeof(char), 0)) < 0) {
+        log_warn("socket recv error, skipping..");
+        return;
+    }
+
+    buf->len += n;
+
+    if (relay_buf(ctx) != PROXY_OK) {
+        log_error("no memory");
+        exit(1);
+    }
+
+    if (buf->cap >= BUF_RECV_CAP_MAX) {
+        buf_clear(buf);
+    } else {
+        buf->len = 0;
+    }
+}
+
 /* Start server. */
 int
 server_start(struct ctx *ctx)
 {
     assert(ctx != NULL);
     assert(ctx->sfd > 0);
+    assert(ctx->tfd > 0);
 
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons(ctx->port);
 
-    if (bind(ctx->sfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+    if (bind(ctx->sfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
         return PROXY_EBIND;
-    }
 
     log_info("listening on udp://127.0.0.1:%d..", ctx->port);
 
-    int n;
-    struct buf *buf = ctx->buf;
-
-    ctx->state = CTX_SERVER_RUNNING;
-
-    for(; ctx->state != CTX_SERVER_STOPPED; ) {
-        if (buf_grow(buf, buf->len + BUF_RECV_UNIT) != BUF_OK)
-            return PROXY_ENOMEM;
-
-        if ((n = recv(ctx->sfd, buf->data + buf->len,
-                        (buf->cap - buf->len) * sizeof(char), 0)) < 0) {
-            log_warn("socket recv error, skipping..");
-            break;
-        }
-
-        buf->len += n;
-
-        if (relay_buf(ctx) != PROXY_OK)
-            return PROXY_ENOMEM;
-
-        if (buf->cap >= BUF_RECV_CAP_MAX) {
-            buf_clear(buf);
-        } else {
-            buf->len = 0;
-        }
+    if (set_timerfd(ctx->tfd, ctx->flush_interval) < 0) {
+        log_error("failed to set timer for next interval!");
+        exit(1);
     }
 
+    struct event_loop *loop = event_loop_new(2);
+
+    if (loop == NULL)
+        return PROXY_ENOMEM;
+
+    event_add_in(loop, ctx->sfd, &recv_buf, (void *)ctx);
+    event_add_in(loop, ctx->tfd, &flush_buf, (void *)ctx);
+    event_loop_start(loop, -1);  /* block forerver */
+    event_loop_free(loop);
     return PROXY_OK;
 }
 
@@ -125,7 +149,6 @@ relay_buf(struct ctx *ctx)
     struct sockaddr_in addr;
     struct buf *sbuf = NULL;
 
-    /* Aggregate net blocks for each node */
     while ((n = parse(&result, data, len)) > 0) {
         node = ketama_node_get(ctx->ring, result.key, result.len);
 
@@ -138,23 +161,59 @@ relay_buf(struct ctx *ctx)
         if (buf_put(sbuf, result.block, result.blen) != BUF_OK)
             return PROXY_ENOMEM;
 
-        if (sbuf->len >= BUF_SEND_UNIT)
+        if (sbuf->len >= BUF_SEND_UNIT) {
+            /* flush buffer if this buf is large enough */
+            log_info("flush to node %s..", node.key);
             send_buf(ctx, addr, sbuf);
+        }
 
         data += n;
         len -= n;
         n_parsed += n;
     }
 
-    /* Flush all node buffers even if they do not reach the send unit size */
+    return PROXY_OK;
+}
+
+/* Flush buffers on interval. */
+void
+flush_buf(struct event_loop *loop, int fd, int mask, void *data)
+{
+    struct ctx *ctx = data;
+    struct buf *sbuf;
+    struct sockaddr_in addr;
     int i;
 
     for (i = 0; i < ctx->num_nodes; i++) {
         sbuf = ctx->sbufs[i];
         addr = ctx->addrs[i];
-        if (sbuf->len > 0)
+        if (sbuf->len > 0) {
+            log_info("flush to node %s..", ctx->nodes[i].key);
             send_buf(ctx, addr, sbuf);
+        }
     }
 
-    return PROXY_OK;
+    if (set_timerfd(ctx->tfd, ctx->flush_interval) < 0) {
+        log_error("failed to set timer for next interval!");
+        exit(1);
+    }
+}
+
+int
+set_timerfd(int tfd, uint32_t ms)
+{
+    /* Restart timer */
+    struct itimerspec new_value;
+    struct itimerspec old_value;
+
+    bzero(&new_value, sizeof(new_value));
+    bzero(&old_value, sizeof(old_value));
+
+    struct timespec ts;
+    ts.tv_sec = ms / 1000;
+    ts.tv_nsec = (ms - ts.tv_sec * 1000) * 1000000;
+
+    new_value.it_value = ts;
+    new_value.it_interval = ts;
+    return timerfd_settime(tfd, 0, &new_value, &old_value);
 }

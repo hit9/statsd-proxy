@@ -8,6 +8,7 @@
 #define _CW_PROXY_H 1
 
 #include "ctx.h"
+#include "event.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -26,8 +27,10 @@ enum {
 
 void *thread_start(void *arg);
 int server_start(struct ctx *ctx);
+void recv_buf(struct event_loop *loop, int fd, int mask, void *data);
 int relay_buf(struct ctx *ctx);
 void send_buf(struct ctx *ctx, struct sockaddr_in addr, struct buf *buf);
+void flush_buf(struct event_loop *loop, int fd, int mask, void *data);
 
 #if defined(__cplusplus)
 }

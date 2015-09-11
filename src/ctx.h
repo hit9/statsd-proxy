@@ -15,21 +15,20 @@
 extern "C" {
 #endif
 
-#define CTX_SERVER_STOPPED     0
-#define CTX_SERVER_RUNNING     1
-
 enum {
     CTX_OK = 0,      /* operation is ok */
     CTX_ENOMEM = 1,  /* no memory error */
     CTX_EBADFMT = 2, /* invalid format */
     CTX_ESOCKET = 3, /* socket create error */
+    CTX_ETFD = 4,    /* timer fd create error */
 };
 
 struct ctx {
-    int state;                  /* CTX_SERVER_(STOPPED|RUNNING)*/
     int cfd;                    /* client udp socket fd */
     int sfd;                    /* server udp socket fd */
+    int tfd;                    /* the timer fd */
     unsigned short port;        /* server port to bind */
+    uint32_t flush_interval;    /* buffer flush interval */
     size_t num_nodes;           /* number of ketama nodes */
     struct ketama_node *nodes;  /* ketama nodes ref (shared by multiple threads, read only) */
     struct ketama_ring *ring;   /* ketama ring */
@@ -39,7 +38,8 @@ struct ctx {
 
 };
 
-struct ctx *ctx_new(struct ketama_node *nodes, size_t num_nodes, unsigned short port);
+struct ctx *ctx_new(struct ketama_node *nodes, size_t num_nodes, unsigned short port,
+        uint32_t flush_interval);
 void ctx_free(struct ctx *ctx);
 int ctx_init(struct ctx *ctx);
 

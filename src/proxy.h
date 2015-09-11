@@ -14,9 +14,9 @@ extern "C" {
 #endif
 
 #define BUF_RECV_UNIT          64*1024    /* recv packet size limit: 64kb */
-#define BUF_RECV_CAP_MAX       1024*1024  /* recv buffer memory limit */
+#define BUF_RECV_CAP_MAX       1024*1024  /* recv buffer memory limit: 1mb */
 #define BUF_SEND_UNIT          32*1024    /* send packet size limit: 32kb */
-#define BUF_SEND_CAP_MAX       1024*1024  /* send buffer memory limit */
+#define BUF_SEND_CAP_MAX       1024*1024  /* send buffer memory limit: 1mb */
 
 enum {
     PROXY_OK = 0,       /* operation is ok */

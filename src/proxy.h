@@ -8,6 +8,7 @@
 #define _CW_PROXY_H 1
 
 #include "ctx.h"
+#include "event.h"
 
 #if defined(__cplusplus)
 extern "C" {

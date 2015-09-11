@@ -24,6 +24,7 @@ config_new(void)
 
     c->port = 8125;
     c->num_threads = 4;
+    c->flush_interval = 10;
 
     int i;
 
@@ -122,6 +123,17 @@ config_init(struct config *c, const char *filename)
             }
 
             c->num_threads = (unsigned short)num_threads;
+        }
+
+        if (strncmp("flush_interval", cfg.key, cfg.key_len) == 0) {
+            long flush_interval = strtol(s, NULL, 10);
+
+            if (flush_interval <= 0 || flush_interval > 1000) {
+                log_error("invalid flush_interval at line %d", cfg.lineno);
+                return CONFIG_EVALUE;
+            }
+
+            c->flush_interval = (uint32_t)flush_interval;
         }
 
         if (strncmp("node", cfg.key, cfg.key_len) == 0) {

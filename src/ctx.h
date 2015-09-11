@@ -28,6 +28,7 @@ struct ctx {
     int sfd;                    /* server udp socket fd */
     int tfd;                    /* the timer fd */
     unsigned short port;        /* server port to bind */
+    uint32_t flush_interval;    /* buffer flush interval */
     size_t num_nodes;           /* number of ketama nodes */
     struct ketama_node *nodes;  /* ketama nodes ref (shared by multiple threads, read only) */
     struct ketama_ring *ring;   /* ketama ring */
@@ -37,7 +38,8 @@ struct ctx {
 
 };
 
-struct ctx *ctx_new(struct ketama_node *nodes, size_t num_nodes, unsigned short port);
+struct ctx *ctx_new(struct ketama_node *nodes, size_t num_nodes, unsigned short port,
+        uint32_t flush_interval);
 void ctx_free(struct ctx *ctx);
 int ctx_init(struct ctx *ctx);
 

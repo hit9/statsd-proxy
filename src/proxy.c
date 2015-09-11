@@ -16,6 +16,8 @@
 #include "proxy.h"
 #include "parser.h"
 
+int set_timerfd(int tfd, uint32_t ms);
+
 /* Start proxy in a thread. */
 void *
 thread_start(void *arg)
@@ -90,19 +92,7 @@ server_start(struct ctx *ctx)
 
     log_info("listening on udp://127.0.0.1:%d..", ctx->port);
 
-    struct itimerspec new_value;
-    struct itimerspec old_value;
-
-    bzero(&new_value, sizeof(new_value));
-    bzero(&old_value, sizeof(old_value));
-
-    struct timespec ts;
-    ts.tv_sec = 0;
-    ts.tv_nsec = 10 * 1000 * 1000;
-
-    new_value.it_value = ts;
-    new_value.it_interval = ts;
-    timerfd_settime(ctx->tfd, 0, &new_value, &old_value);
+    set_timerfd(ctx->tfd, ctx->flush_interval);
 
     struct event_loop *loop = event_loop_new(2);
 
@@ -198,6 +188,12 @@ flush_buf(struct event_loop *loop, int fd, int mask, void *data)
         }
     }
 
+    set_timerfd(ctx->tfd, ctx->flush_interval);
+}
+
+int
+set_timerfd(int tfd, uint32_t ms)
+{
     /* Restart timer */
     struct itimerspec new_value;
     struct itimerspec old_value;
@@ -206,10 +202,10 @@ flush_buf(struct event_loop *loop, int fd, int mask, void *data)
     bzero(&old_value, sizeof(old_value));
 
     struct timespec ts;
-    ts.tv_sec = 0;
-    ts.tv_nsec = 10 * 1000 * 1000;
+    ts.tv_sec = ms / 1000;
+    ts.tv_nsec = (ms - ts.tv_sec * 1000) * 1000000;
 
     new_value.it_value = ts;
     new_value.it_interval = ts;
-    timerfd_settime(ctx->tfd, 0, &new_value, &old_value);
+    return timerfd_settime(tfd, 0, &new_value, &old_value);
 }

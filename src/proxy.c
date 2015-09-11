@@ -97,14 +97,14 @@ server_start(struct ctx *ctx)
     bzero(&old_value, sizeof(old_value));
 
     struct timespec ts;
-    ts.tv_sec = 1;
-    ts.tv_nsec = 0;
+    ts.tv_sec = 0;
+    ts.tv_nsec = 10 * 1000 * 1000;
 
     new_value.it_value = ts;
     new_value.it_interval = ts;
-    timerfd_settime(ctx->tfd, 0, &new_value, &old_value);  /* < 0 test */
+    timerfd_settime(ctx->tfd, 0, &new_value, &old_value);
 
-    struct event_loop *loop = event_loop_new(1024);
+    struct event_loop *loop = event_loop_new(2);
 
     if (loop == NULL)
         return PROXY_ENOMEM;
@@ -156,7 +156,6 @@ relay_buf(struct ctx *ctx)
     struct sockaddr_in addr;
     struct buf *sbuf = NULL;
 
-    /* Aggregate net blocks for each node */
     while ((n = parse(&result, data, len)) > 0) {
         node = ketama_node_get(ctx->ring, result.key, result.len);
 
@@ -185,7 +184,6 @@ relay_buf(struct ctx *ctx)
 void
 flush_buf(struct event_loop *loop, int fd, int mask, void *data)
 {
-    log_info("flush buffer to backend nodes..");
     struct ctx *ctx = data;
     struct buf *sbuf;
     struct sockaddr_in addr;
@@ -194,8 +192,10 @@ flush_buf(struct event_loop *loop, int fd, int mask, void *data)
     for (i = 0; i < ctx->num_nodes; i++) {
         sbuf = ctx->sbufs[i];
         addr = ctx->addrs[i];
-        if (sbuf->len > 0)
+        if (sbuf->len > 0) {
+            log_info("flush to node %s", ctx->nodes[i].key);
             send_buf(ctx, addr, sbuf);
+        }
     }
 
     /* Restart timer */
@@ -206,10 +206,10 @@ flush_buf(struct event_loop *loop, int fd, int mask, void *data)
     bzero(&old_value, sizeof(old_value));
 
     struct timespec ts;
-    ts.tv_sec = 1;
-    ts.tv_nsec = 0;
+    ts.tv_sec = 0;
+    ts.tv_nsec = 10 * 1000 * 1000;
 
     new_value.it_value = ts;
     new_value.it_interval = ts;
-    timerfd_settime(ctx->tfd, 0, &new_value, &old_value);  /* < 0 test */
+    timerfd_settime(ctx->tfd, 0, &new_value, &old_value);
 }

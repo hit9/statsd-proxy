@@ -134,10 +134,8 @@ relay_buf(struct ctx *ctx)
         if (buf_put(sbuf, result.block, result.blen) != BUF_OK)
             return PROXY_ENOMEM;
 
-        if (sbuf->len >= BUF_SEND_UNIT) {
-            log_info("send1 %s", buf_str(sbuf));
+        if (sbuf->len >= BUF_SEND_UNIT)
             send_buf(ctx, addr, sbuf);
-        }
 
         data += n;
         len -= n;
@@ -152,4 +150,6 @@ relay_buf(struct ctx *ctx)
         addr = ctx->addrs[i];
         send_buf(ctx, addr, sbuf);
     }
+
+    return PROXY_OK;
 }

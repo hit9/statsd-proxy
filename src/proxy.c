@@ -60,8 +60,6 @@ recv_buf(struct event_loop *loop, int fd, int mask, void *data)
 
     buf->len += n;
 
-    log_info("%s", buf_str(buf));
-
     if (relay_buf(ctx) != PROXY_OK) {
         log_error("no memory");
         exit(1);
@@ -187,7 +185,7 @@ relay_buf(struct ctx *ctx)
 void
 flush_buf(struct event_loop *loop, int fd, int mask, void *data)
 {
-    log_info("flush buffer!");
+    log_info("flush buffer to backend nodes..");
     struct ctx *ctx = data;
     struct buf *sbuf;
     struct sockaddr_in addr;
@@ -200,6 +198,7 @@ flush_buf(struct event_loop *loop, int fd, int mask, void *data)
             send_buf(ctx, addr, sbuf);
     }
 
+    /* Restart timer */
     struct itimerspec new_value;
     struct itimerspec old_value;
 

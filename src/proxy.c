@@ -72,7 +72,8 @@ server_start(struct ctx *ctx)
 
         buf->len += n;
 
-        relay_buf(ctx);
+        if (relay_buf(ctx) != PROXY_OK)
+            return PROXY_ENOMEM;
 
         if (buf->cap >= BUF_RECV_CAP_MAX) {
             buf_clear(buf);
@@ -113,6 +114,9 @@ relay_buf(struct ctx *ctx)
     assert(ctx->buf != NULL);
     assert(ctx->sbufs != NULL);
 
+    if (ctx->buf->len == 0)
+        return PROXY_OK;
+
     struct parser_result result;
     int n, n_parsed = 0;
     char *data = ctx->buf->data;
@@ -148,7 +152,8 @@ relay_buf(struct ctx *ctx)
     for (i = 0; i < ctx->num_nodes; i++) {
         sbuf = ctx->sbufs[i];
         addr = ctx->addrs[i];
-        send_buf(ctx, addr, sbuf);
+        if (sbuf->len > 0)
+            send_buf(ctx, addr, sbuf);
     }
 
     return PROXY_OK;

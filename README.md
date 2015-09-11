@@ -47,7 +47,13 @@ Build
 Usage
 -----
 
-    $ ./src/statsd-proxy /path/to/statsd-proxy.cfg
+    Usage:
+      ./statsd-proxy -f ./path/to/config.cfg
+    Options:
+      -h, --help        Show this message
+      -v, --version     Show version
+      -d, --debug       Enable debug logging
+    Copyright (c) https://github.com/hit9/statsd-proxy
 
 License
 -------

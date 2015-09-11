@@ -23,7 +23,7 @@ void *
 thread_start(void *arg)
 {
     struct ctx *ctx = arg;
-    int err;
+    int err = -1;
 
     if ((err = ctx_init(ctx)) == CTX_OK)
         err = server_start(ctx);

@@ -20,11 +20,13 @@ enum {
     CTX_ENOMEM = 1,  /* no memory error */
     CTX_EBADFMT = 2, /* invalid format */
     CTX_ESOCKET = 3, /* socket create error */
+    CTX_ETFD = 4,    /* timer fd create error */
 };
 
 struct ctx {
     int cfd;                    /* client udp socket fd */
     int sfd;                    /* server udp socket fd */
+    int tfd;                    /* the timer fd */
     unsigned short port;        /* server port to bind */
     size_t num_nodes;           /* number of ketama nodes */
     struct ketama_node *nodes;  /* ketama nodes ref (shared by multiple threads, read only) */

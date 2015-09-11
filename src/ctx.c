@@ -7,11 +7,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
 #include <strings.h>
+#include <sys/socket.h>
+#include <sys/timerfd.h>
+#include <sys/types.h>
 #include "buf.h"
 #include "ctx.h"
 #include "ketama.h"
@@ -86,6 +87,7 @@ ctx_new(struct ketama_node *nodes, size_t num_nodes, unsigned short port)
     ctx->buf = buf;
     ctx->cfd = -1;
     ctx->sfd = -1;
+    ctx->tfd = -1;
     ctx->ring = ring;
     ctx->port = port;
     ctx->addrs = addrs;
@@ -107,6 +109,10 @@ ctx_free(struct ctx *ctx)
 
         if (ctx->sfd > 0)
             close(ctx->sfd);
+
+        if (ctx->tfd > 0) {
+            close(ctx->tfd);
+        }
 
         if (ctx->ring != NULL)
             ketama_ring_free(ctx->ring);
@@ -168,7 +174,7 @@ ctx_init(struct ctx *ctx)
     /* Init server socket */
     assert(ctx->sfd == -1);
 
-    ctx->sfd = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+    ctx->sfd = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
     int optval = 1;
     setsockopt(ctx->sfd, SOL_SOCKET, SO_REUSEPORT,
             (const void *)&optval , sizeof(int));
@@ -176,6 +182,15 @@ ctx_init(struct ctx *ctx)
     if (ctx->sfd < 0) {
         close(ctx->cfd);
         return CTX_ESOCKET;
+    }
+
+    /* Init timer fd */
+    assert(ctx->tfd == -1);
+    ctx->tfd = timerfd_create(CLOCK_REALTIME, TFD_NONBLOCK | TFD_CLOEXEC);
+
+    if (ctx->tfd < 0) {
+        close(ctx->tfd);
+        return CTX_ETFD;
     }
     return CTX_OK;
 }

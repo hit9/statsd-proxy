@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <sys/socket.h>
-#include <sys/timerfd.h>
 #include <netinet/in.h>
+#include <strings.h>
 #include "ctx.h"
 #include "event.h"
 #include "ketama.h"
@@ -60,6 +60,8 @@ recv_buf(struct event_loop *loop, int fd, int mask, void *data)
 
     buf->len += n;
 
+    log_info("%s", buf_str(buf));
+
     if (relay_buf(ctx) != PROXY_OK) {
         log_error("no memory");
         exit(1);
@@ -78,20 +80,39 @@ server_start(struct ctx *ctx)
 {
     assert(ctx != NULL);
     assert(ctx->sfd > 0);
+    assert(ctx->tfd > 0);
 
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons(ctx->port);
 
-    if (bind(ctx->sfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+    if (bind(ctx->sfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
         return PROXY_EBIND;
-    }
 
     log_info("listening on udp://127.0.0.1:%d..", ctx->port);
 
+    struct itimerspec new_value;
+    struct itimerspec old_value;
+
+    bzero(&new_value, sizeof(new_value));
+    bzero(&old_value, sizeof(old_value));
+
+    struct timespec ts;
+    ts.tv_sec = 1;
+    ts.tv_nsec = 0;
+
+    new_value.it_value = ts;
+    new_value.it_interval = ts;
+    timerfd_settime(ctx->tfd, 0, &new_value, &old_value);  /* < 0 test */
+
     struct event_loop *loop = event_loop_new(1024);
+
+    if (loop == NULL)
+        return PROXY_ENOMEM;
+
     event_add_in(loop, ctx->sfd, &recv_buf, (void *)ctx);
+    event_add_in(loop, ctx->tfd, &flush_buf, (void *)ctx);
     event_loop_start(loop, -1);
     event_loop_free(loop);
     return PROXY_OK;
@@ -151,6 +172,7 @@ relay_buf(struct ctx *ctx)
             return PROXY_ENOMEM;
 
         if (sbuf->len >= BUF_SEND_UNIT)
+            /* flush buffer if this buf is large enough */
             send_buf(ctx, addr, sbuf);
 
         data += n;
@@ -158,7 +180,17 @@ relay_buf(struct ctx *ctx)
         n_parsed += n;
     }
 
-    /* Flush all node buffers even if they do not reach the send unit size */
+    return PROXY_OK;
+}
+
+/* Flush buffers on interval. */
+void
+flush_buf(struct event_loop *loop, int fd, int mask, void *data)
+{
+    log_info("flush buffer!");
+    struct ctx *ctx = data;
+    struct buf *sbuf;
+    struct sockaddr_in addr;
     int i;
 
     for (i = 0; i < ctx->num_nodes; i++) {
@@ -168,5 +200,17 @@ relay_buf(struct ctx *ctx)
             send_buf(ctx, addr, sbuf);
     }
 
-    return PROXY_OK;
+    struct itimerspec new_value;
+    struct itimerspec old_value;
+
+    bzero(&new_value, sizeof(new_value));
+    bzero(&old_value, sizeof(old_value));
+
+    struct timespec ts;
+    ts.tv_sec = 1;
+    ts.tv_nsec = 0;
+
+    new_value.it_value = ts;
+    new_value.it_interval = ts;
+    timerfd_settime(ctx->tfd, 0, &new_value, &old_value);  /* < 0 test */
 }

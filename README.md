@@ -42,7 +42,13 @@ Linux 3.9+.
 Build
 ------
 
+Just make:
+
     $ make
+
+or install it via npm:
+
+    npm install statsd-proxy -g
 
 Usage
 -----

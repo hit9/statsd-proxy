@@ -26,7 +26,8 @@ Features
 * Zero dependencies.
 * Very very fast.
 * Multiple threading.
-* Reuseport support
+* Reuseport support.
+* Packets aggregation.
 
 Limitation
 ----------

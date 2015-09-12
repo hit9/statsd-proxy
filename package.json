@@ -1,0 +1,18 @@
+{
+  "name": "statsd-proxy",
+  "description": "Fast proxy for etsy/statsd. ",
+  "version": "0.0.6",
+  "author": "Chao Wang <hit9@icloud.com>",
+  "homepage": "https://github.com/hit9/statsd-proxy.git",
+  "bugs": "https://github.com/hit9/statsd-proxy/issues",
+  "keywords": ["statsd", "proxy"],
+  "bin": {"statsd-proxy": "./src/statsd-proxy"},
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hit9/statsd-proxy.git"
+  },
+  "preferGlobal": true,
+  "os": ["linux"],
+  "scripts":{"preinstall": "make"},
+  "license": "MIT"
+}

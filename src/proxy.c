@@ -61,11 +61,11 @@ recv_buf(struct event_loop *loop, int fd, int mask, void *data)
             break;
 
         buf->len += n;
-    }
 
-    if (relay_buf(ctx) != PROXY_OK) {
-        log_error("no memory");
-        exit(1);
+        if (relay_buf(ctx) != PROXY_OK) {
+            log_error("no memory");
+            exit(1);
+        }
     }
 
     if (buf->cap >= BUF_RECV_CAP_MAX) {
@@ -174,6 +174,7 @@ relay_buf(struct ctx *ctx)
         n_parsed += n;
     }
 
+    buf_lrm(ctx->buf, n_parsed);
     return PROXY_OK;
 }
 

@@ -3,3 +3,4 @@ src/statsd-proxy
 *.log
 *.sw[opn]
 test.*
+test_serv.py

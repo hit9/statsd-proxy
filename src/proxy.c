@@ -3,6 +3,7 @@
  */
 
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -49,18 +50,18 @@ recv_buf(struct event_loop *loop, int fd, int mask, void *data)
     int n;
     struct buf *buf = ctx->buf;
 
-    if (buf_grow(buf, buf->len + BUF_RECV_UNIT) != BUF_OK) {
-        log_error("no memory");
-        exit(1);
-    }
+    while (1) {
+        if (buf_grow(buf, buf->len + BUF_RECV_UNIT) != BUF_OK) {
+            log_error("no memory");
+            exit(1);
+        }
 
-    if ((n = recv(ctx->sfd, buf->data + buf->len,
-                    (buf->cap - buf->len) * sizeof(char), 0)) < 0) {
-        log_warn("socket recv error, skipping..");
-        return;
-    }
+        if ((n = recv(ctx->sfd, buf->data + buf->len,
+                        (buf->cap - buf->len) * sizeof(char), 0)) < 0)
+            break;
 
-    buf->len += n;
+        buf->len += n;
+    }
 
     if (relay_buf(ctx) != PROXY_OK) {
         log_error("no memory");

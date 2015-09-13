@@ -29,8 +29,8 @@ Features
 * Reuseport support.
 * Packets aggregation.
 
-Limitation
-----------
+Limitations
+-----------
 
 * Only available on linux 3.9+ (option `SO_REUSEPORT`)
 * Only support udp server and udp backends.

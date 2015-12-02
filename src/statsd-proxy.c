@@ -19,7 +19,7 @@
 
 #include "config.h"
 
-#define STATSD_PROXY_VERSION    "0.0.8"
+#define STATSD_PROXY_VERSION    "0.0.9"
 
 void version(void);
 void usage(void);

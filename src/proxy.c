@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <sys/socket.h>
-#include <sys/timerfd.h>
 #include <netinet/in.h>
 #include <strings.h>
 #include "ctx.h"
@@ -16,8 +15,6 @@
 #include "log.h"
 #include "proxy.h"
 #include "parser.h"
-
-int set_timerfd(int tfd, uint32_t ms);
 
 /* Start proxy in a thread. */
 void *
@@ -81,7 +78,6 @@ server_start(struct ctx *ctx)
 {
     assert(ctx != NULL);
     assert(ctx->sfd > 0);
-    assert(ctx->tfd > 0);
 
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
@@ -93,18 +89,13 @@ server_start(struct ctx *ctx)
 
     log_info("serving on udp://127.0.0.1:%d..", ctx->port);
 
-    if (set_timerfd(ctx->tfd, ctx->flush_interval) < 0) {
-        log_error("failed to set timer for next interval!");
-        exit(1);
-    }
-
     struct event_loop *loop = event_loop_new(2);
 
     if (loop == NULL)
         return PROXY_ENOMEM;
 
     event_add_in(loop, ctx->sfd, &recv_buf, (void *)ctx);
-    event_add_in(loop, ctx->tfd, &flush_buf, (void *)ctx);
+    event_add_timer(loop, (long)(ctx->flush_interval), &flush_buf, (void *)ctx);
     event_loop_start(loop);  /* block forerver */
     event_loop_free(loop);
     return PROXY_OK;
@@ -180,7 +171,7 @@ relay_buf(struct ctx *ctx)
 
 /* Flush buffers on interval. */
 void
-flush_buf(struct event_loop *loop, int fd, int mask, void *data)
+flush_buf(struct event_loop *loop, int id, void *data)
 {
     struct ctx *ctx = data;
     struct buf *sbuf;
@@ -195,28 +186,4 @@ flush_buf(struct event_loop *loop, int fd, int mask, void *data)
         if (sbuf->len > 0)
             send_buf(ctx, addr, sbuf, node->key);
     }
-
-    if (set_timerfd(ctx->tfd, ctx->flush_interval) < 0) {
-        log_error("failed to set timer for next interval!");
-        exit(1);
-    }
-}
-
-int
-set_timerfd(int tfd, uint32_t ms)
-{
-    /* Restart timer */
-    struct itimerspec new_value;
-    struct itimerspec old_value;
-
-    bzero(&new_value, sizeof(new_value));
-    bzero(&old_value, sizeof(old_value));
-
-    struct timespec ts;
-    ts.tv_sec = ms / 1000;
-    ts.tv_nsec = (ms - ts.tv_sec * 1000) * 1000000;
-
-    new_value.it_value = ts;
-    new_value.it_interval = ts;
-    return timerfd_settime(tfd, 0, &new_value, &old_value);
 }

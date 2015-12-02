@@ -26,7 +26,6 @@ enum {
 struct ctx {
     int cfd;                    /* client udp socket fd */
     int sfd;                    /* server udp socket fd */
-    int tfd;                    /* the timer fd */
     unsigned short port;        /* server port to bind */
     uint32_t flush_interval;    /* buffer flush interval */
     size_t num_nodes;           /* number of ketama nodes */

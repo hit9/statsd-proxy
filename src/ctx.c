@@ -12,7 +12,6 @@
 #include <string.h>
 #include <strings.h>
 #include <sys/socket.h>
-#include <sys/timerfd.h>
 #include <sys/types.h>
 #include "buf.h"
 #include "ctx.h"
@@ -89,7 +88,6 @@ ctx_new(struct ketama_node *nodes, size_t num_nodes, unsigned short port,
     ctx->buf = buf;
     ctx->cfd = -1;
     ctx->sfd = -1;
-    ctx->tfd = -1;
     ctx->ring = ring;
     ctx->port = port;
     ctx->addrs = addrs;
@@ -111,10 +109,6 @@ ctx_free(struct ctx *ctx)
 
         if (ctx->sfd > 0)
             close(ctx->sfd);
-
-        if (ctx->tfd > 0) {
-            close(ctx->tfd);
-        }
 
         if (ctx->ring != NULL)
             ketama_ring_free(ctx->ring);
@@ -184,15 +178,6 @@ ctx_init(struct ctx *ctx)
     if (ctx->sfd < 0) {
         close(ctx->cfd);
         return CTX_ESOCKET;
-    }
-
-    /* Init timer fd */
-    assert(ctx->tfd == -1);
-    ctx->tfd = timerfd_create(CLOCK_REALTIME, TFD_NONBLOCK | TFD_CLOEXEC);
-
-    if (ctx->tfd < 0) {
-        close(ctx->tfd);
-        return CTX_ETFD;
     }
     return CTX_OK;
 }

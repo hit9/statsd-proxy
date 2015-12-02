@@ -28,7 +28,7 @@ void start(struct config *config);
 int
 main(int argc, char *argv[])
 {
-    log_open("statsd-proxy", NULL);
+    log_open("statsd-proxy", NULL, 0);
 
     char *filename;
 

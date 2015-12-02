@@ -34,7 +34,7 @@ thread_start(void *arg)
             log_error("failed to bind server on port %d", ctx->port);
             break;
         default:
-            log_error("fatal error occurred");
+            log_error("fatal error occurred: %d", err);
     }
     exit(1);
 }
@@ -93,10 +93,10 @@ server_start(struct ctx *ctx)
 
     if (loop == NULL)
         return PROXY_ENOMEM;
-
     event_add_in(loop, ctx->sfd, &recv_buf, (void *)ctx);
     event_add_timer(loop, (long)(ctx->flush_interval), &flush_buf, (void *)ctx);
-    event_loop_start(loop);  /* block forerver */
+    if (event_loop_start(loop) != EVENT_OK)  /* block forerver */
+        return PROXY_ELOOP;
     event_loop_free(loop);
     return PROXY_OK;
 }

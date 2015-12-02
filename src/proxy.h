@@ -23,6 +23,7 @@ enum {
     PROXY_OK = 0,       /* operation is ok */
     PROXY_ENOMEM = 1,   /* no memory error */
     PROXY_EBIND = 2,    /* socket bind error */
+    PROXY_ELOOP = 3,    /* event loop error */
 };
 
 void *thread_start(void *arg);

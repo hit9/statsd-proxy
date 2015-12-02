@@ -1,7 +1,7 @@
 {
   "name": "statsd-proxy",
   "description": "Fast proxy for etsy/statsd. ",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "author": "Chao Wang <hit9@icloud.com>",
   "homepage": "https://github.com/hit9/statsd-proxy.git",
   "bugs": "https://github.com/hit9/statsd-proxy/issues",

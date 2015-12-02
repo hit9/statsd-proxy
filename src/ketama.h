@@ -2,6 +2,7 @@
  * Copyright (c) 2015, Chao Wang <hit9@icloud.com>
  *
  * Ketama consistent hashing implementation.
+ * deps: None.
  */
 
 #ifndef _CW_KETAMA_H
@@ -12,6 +13,8 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
+
+#define ketama_ring(nodes, size)    ketama_ring_new(nodes, size)
 
 /* Note ketama ring's `nodes` and its `length` is not the orignal parameter
  * passed in. */
@@ -29,12 +32,10 @@ struct ketama_node {
     uint32_t hash;        /* hash value in the ring */
 };
 
-static struct ketama_node ketama_node_null = {NULL, 0, NULL, 0};
-
 struct ketama_ring *ketama_ring_new(struct ketama_node *nodes, size_t len);
 void ketama_ring_free(struct ketama_ring *ring);
-struct ketama_node ketama_node_get(struct ketama_ring *ring, char *key, size_t key_len);
-struct ketama_node ketama_node_sget(struct ketama_ring *ring, char *key);
+struct ketama_node *ketama_node_iget(struct ketama_ring *ring, char *key, size_t key_len); /* O(logN) */
+struct ketama_node *ketama_node_get(struct ketama_ring *ring, char *key); /* O(logN) */
 
 #if defined(__cplusplus)
 }

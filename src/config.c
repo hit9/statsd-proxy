@@ -11,7 +11,6 @@
 #include "buf.h"
 #include "cfg.h"
 #include "config.h"
-#include "ketama.h"
 #include "log.h"
 
 struct config *

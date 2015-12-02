@@ -30,7 +30,7 @@ int server_start(struct ctx *ctx);
 void recv_buf(struct event_loop *loop, int fd, int mask, void *data);
 int relay_buf(struct ctx *ctx);
 void send_buf(struct ctx *ctx, struct sockaddr_in addr, struct buf *buf, char *addr_s);
-void flush_buf(struct event_loop *loop, int fd, int mask, void *data);
+void flush_buf(struct event_loop *loop, int id, void *data);
 
 #if defined(__cplusplus)
 }

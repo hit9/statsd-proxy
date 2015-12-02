@@ -2,13 +2,14 @@
  * Copyright (c) 2015, Chao Wang <hit9@icloud.com>
  *
  * Dynamic buffer implementation.
+ * deps: None.
  */
 
 #ifndef _CW_BUF_H
 #define _CW_BUF_H       1
 
 #include <stdint.h>
-#include "bool.h"
+#include <stdlib.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -42,9 +43,11 @@ int buf_put(struct buf *buf, char *data, size_t len);
 int buf_puts(struct buf *buf, const char *s);
 int buf_putc(struct buf *buf, char ch);
 char *buf_str(struct buf *buf);
-bool buf_isempty(struct buf *buf);
+int buf_isempty(struct buf *buf);
 int buf_sprintf(struct buf *buf, const char *fmt, ...);
 void buf_lrm(struct buf *buf, size_t len);
+size_t buf_len(struct buf *buf);
+size_t buf_cap(struct buf *buf);
 
 #if defined(__cplusplus)
 }

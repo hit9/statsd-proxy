@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <sys/socket.h>
+#include <sys/timerfd.h>
 #include <netinet/in.h>
 #include <strings.h>
 #include "ctx.h"
@@ -104,7 +105,7 @@ server_start(struct ctx *ctx)
 
     event_add_in(loop, ctx->sfd, &recv_buf, (void *)ctx);
     event_add_in(loop, ctx->tfd, &flush_buf, (void *)ctx);
-    event_loop_start(loop, -1);  /* block forerver */
+    event_loop_start(loop);  /* block forerver */
     event_loop_free(loop);
     return PROXY_OK;
 }
@@ -148,15 +149,15 @@ relay_buf(struct ctx *ctx)
     int n, n_parsed = 0;
     char *data = ctx->buf->data;
     size_t len = ctx->buf->len;
-    struct ketama_node node;
+    struct ketama_node *node;
     struct sockaddr_in addr;
     struct buf *sbuf = NULL;
 
     while ((n = parse(&result, data, len)) > 0) {
-        node = ketama_node_get(ctx->ring, result.key, result.len);
+        node = ketama_node_iget(ctx->ring, result.key, result.len);
 
-        sbuf = ctx->sbufs[node.idx];
-        addr = ctx->addrs[node.idx];
+        sbuf = ctx->sbufs[node->idx];
+        addr = ctx->addrs[node->idx];
 
         if (sbuf->len > 0 && buf_putc(sbuf, '\n') != BUF_OK)
             return PROXY_ENOMEM;
@@ -166,7 +167,7 @@ relay_buf(struct ctx *ctx)
 
         /* flush buffer if this buf is large enough */
         if (sbuf->len >= BUF_SEND_UNIT)
-            send_buf(ctx, addr, sbuf, node.key);
+            send_buf(ctx, addr, sbuf, node->key);
 
         data += n;
         len -= n;
@@ -184,13 +185,15 @@ flush_buf(struct event_loop *loop, int fd, int mask, void *data)
     struct ctx *ctx = data;
     struct buf *sbuf;
     struct sockaddr_in addr;
+    struct ketama_node *node;
     int i;
 
     for (i = 0; i < ctx->num_nodes; i++) {
         sbuf = ctx->sbufs[i];
         addr = ctx->addrs[i];
+        node = &(ctx->nodes[i]);
         if (sbuf->len > 0)
-            send_buf(ctx, addr, sbuf, ctx->nodes[i].key);
+            send_buf(ctx, addr, sbuf, node->key);
     }
 
     if (set_timerfd(ctx->tfd, ctx->flush_interval) < 0) {

@@ -151,14 +151,14 @@ buf_str(struct buf *buf)
     return NULL;
 }
 
-/* Return true if a buffer is empty */
-bool
+/* Return 1 if a buffer is empty, else 0 */
+int
 buf_isempty(struct buf *buf)
 {
     assert(buf != NULL);
     if (buf->len == 0)
-        return true;
-    return false;
+        return 1;
+    return 0;
 }
 
 /* Formatted printing to a buffer. */
@@ -212,4 +212,20 @@ buf_lrm(struct buf *buf, size_t len)
 
     buf->len -= len;
     memmove(buf->data, buf->data + len, buf->len);
+}
+
+/* Get buf length. */
+size_t
+buf_len(struct buf *buf)
+{
+    assert(buf != NULL);
+    return buf->len;
+}
+
+/* Get buf capacity. */
+size_t
+buf_cap(struct buf *buf)
+{
+    assert(buf != NULL);
+    return buf->cap;
 }

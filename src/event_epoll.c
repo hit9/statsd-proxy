@@ -8,7 +8,7 @@
 #include <sys/epoll.h>
 #include "event.h"
 
-#define EVENT_EPOLL_ALWAYS_ET   0
+#define EVENT_EPOLL_ALWAYS_ET   1
 
 struct event_api {
     int ep;                      /* epoll descriptor */
@@ -114,6 +114,7 @@ event_api_del(struct event_loop *loop, int fd, int delmask)
          * EPOLL_CTL_DEL. */
         epoll_ctl(loop->api->ep, EPOLL_CTL_DEL, fd, &ev);
     }
+    return EVENT_OK;
 }
 
 int
@@ -155,8 +156,8 @@ event_api_wait(struct event_loop *loop, int timeout)
     }
 
     if (nfds == 0) {
-        if (timeout == -1)
-            return EVENT_EFAILED;
+        if (timeout > 0)
+            return EVENT_OK;
     }
 
     return EVENT_EFAILED;

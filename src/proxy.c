@@ -109,6 +109,10 @@ send_buf(struct ctx *ctx, struct sockaddr_in addr, struct buf *sbuf,
     assert(ctx != NULL);
     assert(sbuf != NULL);
 
+    // trim the last \n
+    if (sbuf->len > 0 && sbuf->data[sbuf->len - 1] == '\n')
+        sbuf->len -= 1;
+
     int n = sendto(ctx->cfd, sbuf->data, sbuf->len, 0,
             (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
 

@@ -2,34 +2,31 @@
  * Copyright (c) 2015, Chao Wang <hit9@icloud.com>
  */
 
+#include "ctx.h"
+#include <arpa/inet.h>
 #include <assert.h>
 #include <errno.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
 #include <string.h>
 #include <strings.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include "buf.h"
-#include "ctx.h"
 #include "ketama.h"
 #include "log.h"
 
 /* Create ctx, init client/server sockets and ketama ring. */
-struct ctx *
-ctx_new(struct ketama_node *nodes, size_t num_nodes, unsigned short port,
-        uint32_t flush_interval)
-{
+struct ctx *ctx_new(struct ketama_node *nodes, size_t num_nodes,
+                    unsigned short port, uint32_t flush_interval) {
     assert(nodes != NULL);
 
     /* Create ctx */
     struct ctx *ctx = malloc(sizeof(struct ctx));
 
-    if (ctx == NULL)
-        return NULL;
+    if (ctx == NULL) return NULL;
 
     /* Create recv buf (for this thread) */
     struct buf *buf = buf_new(NULL);
@@ -99,30 +96,21 @@ ctx_new(struct ketama_node *nodes, size_t num_nodes, unsigned short port,
 }
 
 /* Free ctx, close client/server sockets and free ketama ring. */
-void
-ctx_free(struct ctx *ctx)
-{
+void ctx_free(struct ctx *ctx) {
     if (ctx != NULL) {
+        if (ctx->cfd > 0) close(ctx->cfd);
 
-        if (ctx->cfd > 0)
-            close(ctx->cfd);
+        if (ctx->sfd > 0) close(ctx->sfd);
 
-        if (ctx->sfd > 0)
-            close(ctx->sfd);
+        if (ctx->ring != NULL) ketama_ring_free(ctx->ring);
 
-        if (ctx->ring != NULL)
-            ketama_ring_free(ctx->ring);
+        if (ctx->buf != NULL) buf_free(ctx->buf);
 
-        if (ctx->buf != NULL)
-            buf_free(ctx->buf);
-
-        if (ctx->addrs != NULL)
-            free(ctx->addrs);
+        if (ctx->addrs != NULL) free(ctx->addrs);
 
         if (ctx->sbufs != NULL) {
             int i;
-            for (i = 0; i < ctx->num_nodes; i++)
-                buf_free(ctx->sbufs[i]);
+            for (i = 0; i < ctx->num_nodes; i++) buf_free(ctx->sbufs[i]);
             free(ctx->sbufs);
         }
 
@@ -131,9 +119,7 @@ ctx_free(struct ctx *ctx)
 }
 
 /* Init ctx, init addrs and client/sockets */
-int
-ctx_init(struct ctx *ctx)
-{
+int ctx_init(struct ctx *ctx) {
     assert(ctx != NULL);
 
     /* Fillin net address */
@@ -146,7 +132,7 @@ ctx_init(struct ctx *ctx)
     struct ketama_node *nodes = ctx->nodes;
 
     for (i = 0; i < ctx->num_nodes; i++) {
-        if (strlen(nodes[i].key) > 26)  /* 15 + 10 + 1 = 26 */
+        if (strlen(nodes[i].key) > 26) /* 15 + 10 + 1 = 26 */
             return CTX_EBADFMT;
 
         if (sscanf(nodes[i].key, "%[^:]:%hu", bhost, &bport) != 2)
@@ -172,8 +158,8 @@ ctx_init(struct ctx *ctx)
 
     ctx->sfd = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
     int optval = 1;
-    setsockopt(ctx->sfd, SOL_SOCKET, SO_REUSEPORT,
-            (const void *)&optval , sizeof(int));
+    setsockopt(ctx->sfd, SOL_SOCKET, SO_REUSEPORT, (const void *)&optval,
+               sizeof(int));
 
     if (ctx->sfd < 0) {
         close(ctx->cfd);

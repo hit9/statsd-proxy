@@ -9,11 +9,9 @@
  *
  * Return number chars parsed on success, -1 on failure.
  */
-int
-parse(struct parser_result *result, char *data, size_t len)
-{
-    int i;  /* to find the first block */
-    int j;  /* to find key in one block */
+int parse(struct parser_result *result, char *data, size_t len) {
+    int i; /* to find the first block */
+    int j; /* to find key in one block */
 
     for (i = 0; i < len; i++) {
         if (data[i] == '\n') {

@@ -9,36 +9,34 @@
 #endif
 
 #include <assert.h>
+#include <getopt.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
-#include <getopt.h>
 
 #include "log.h"
 #include "proxy.h"
 
 #include "config.h"
 
-#define STATSD_PROXY_VERSION    "0.0.9"
+#define STATSD_PROXY_VERSION "0.0.9"
 
 void version(void);
 void usage(void);
 void start(struct config *config);
 
-int
-main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     log_open("statsd-proxy", NULL, 0);
 
     char *filename;
 
     const char *short_opt = "hvdf:";
     struct option long_opt[] = {
-        {"help",       no_argument,       NULL, 'h'},
-        {"version",    no_argument,       NULL, 'v'},
-        {"debug",      no_argument,       NULL, 'd'},
-        {"file",       required_argument, NULL, 'f'},
-        {NULL,         0,                 NULL, 0},
+        {"help", no_argument, NULL, 'h'},
+        {"version", no_argument, NULL, 'v'},
+        {"debug", no_argument, NULL, 'd'},
+        {"file", required_argument, NULL, 'f'},
+        {NULL, 0, NULL, 0},
     };
 
     int c;
@@ -63,16 +61,13 @@ main(int argc, char *argv[])
         };
     }
 
-    if (argc == 1 || optind < argc)
-        usage();
+    if (argc == 1 || optind < argc) usage();
 
     struct config *config = config_new();
 
-    if (config == NULL)
-        exit(1);
+    if (config == NULL) exit(1);
 
-    if (config_init(config, filename) != CONFIG_OK)
-        exit(1);
+    if (config_init(config, filename) != CONFIG_OK) exit(1);
 
     start(config);
 
@@ -81,16 +76,12 @@ main(int argc, char *argv[])
     return 0;
 }
 
-void
-version(void)
-{
+void version(void) {
     fprintf(stderr, "statsd-proxy@%s\n", STATSD_PROXY_VERSION);
     exit(1);
 }
 
-void
-usage(void)
-{
+void usage(void) {
     fprintf(stderr, "Usage:\n");
     fprintf(stderr, "  ./statsd-proxy -f ./path/to/config.cfg\n");
     fprintf(stderr, "Options:\n");
@@ -101,9 +92,7 @@ usage(void)
     exit(1);
 }
 
-void
-start(struct config *config)
-{
+void start(struct config *config) {
     assert(config != NULL);
     assert(config->num_threads > 0);
     assert(config->port > 0);
@@ -116,16 +105,14 @@ start(struct config *config)
     int i;
 
     for (i = 0; i < config->num_threads; i++) {
-        if ((ctxs[i] = ctx_new(config->nodes,
-                        config->num_nodes,
-                        config->port,
-                        config->flush_interval)) == NULL)
+        if ((ctxs[i] = ctx_new(config->nodes, config->num_nodes, config->port,
+                               config->flush_interval)) == NULL)
             exit(1);
         pthread_create(&threads[i], NULL, &thread_start, ctxs[i]);
     }
 
     for (i = 0; i < config->num_threads; i++) {
-         pthread_join(threads[i], NULL);
-         ctx_free(ctxs[i]);
+        pthread_join(threads[i], NULL);
+        ctx_free(ctxs[i]);
     }
 }

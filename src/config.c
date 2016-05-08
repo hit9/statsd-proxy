@@ -4,22 +4,19 @@
  * Proxy config.
  */
 
+#include "config.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "buf.h"
 #include "cfg.h"
-#include "config.h"
 #include "log.h"
 
-struct config *
-config_new(void)
-{
+struct config *config_new(void) {
     struct config *c = malloc(sizeof(struct config));
 
-    if (c == NULL)
-        return NULL;
+    if (c == NULL) return NULL;
 
     c->port = 8125;
     c->num_threads = 4;
@@ -28,11 +25,10 @@ config_new(void)
     int i;
 
     for (i = 0; i < KETAMA_NUM_NODES_MAX; i++) {
-        if ((c->nodes[i].key = malloc(
-                        KETAMA_NODE_KEY_LEN_MAX * sizeof(char))) == NULL) {
+        if ((c->nodes[i].key =
+                 malloc(KETAMA_NODE_KEY_LEN_MAX * sizeof(char))) == NULL) {
             for (i = 0; i < KETAMA_NUM_NODES_MAX; i++)
-                if (c->nodes[i].key != NULL)
-                    free(c->nodes[i].key);
+                if (c->nodes[i].key != NULL) free(c->nodes[i].key);
             return NULL;
         }
     }
@@ -40,22 +36,16 @@ config_new(void)
     return c;
 }
 
-void
-config_free(struct config *c)
-{
+void config_free(struct config *c) {
     if (c != NULL) {
         int i;
         for (i = 0; i < KETAMA_NUM_NODES_MAX; i++)
-            if (c->nodes[i].key != NULL)
-                free(c->nodes[i].key);
+            if (c->nodes[i].key != NULL) free(c->nodes[i].key);
         free(c);
     }
 }
 
-
-int
-config_init(struct config *c, const char *filename)
-{
+int config_init(struct config *c, const char *filename) {
     assert(c != NULL);
 
     struct buf *buf = buf_new(NULL);
@@ -76,7 +66,7 @@ config_init(struct config *c, const char *filename)
         }
 
         if ((nread = fread(buf->data + buf->len, sizeof(char),
-                    buf->cap - buf->len, fp)) <= 0)
+                           buf->cap - buf->len, fp)) <= 0)
             break;
 
         buf->len += nread;
@@ -157,15 +147,15 @@ config_init(struct config *c, const char *filename)
             (c->nodes[c->num_nodes]).weight = weight;
             (c->nodes[c->num_nodes]).idx = c->num_nodes;
             c->num_nodes++;
-            log_debug("load config.node#%d udp://%s:%hu:%u", c->num_nodes, host, port, weight);
+            log_debug("load config.node#%d udp://%s:%hu:%u", c->num_nodes, host,
+                      port, weight);
         }
     }
 
     buf_free(buf);
 
     if (cfg_err == CFG_EBADFMT) {
-        log_error("invalid syntax in %s, at line %d", filename,
-                cfg.lineno);
+        log_error("invalid syntax in %s, at line %d", filename, cfg.lineno);
         return CONFIG_EBADFMT;
     }
 

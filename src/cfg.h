@@ -32,6 +32,8 @@
 #ifndef _CW_CFG_H
 #define _CW_CFG_H 1
 
+#include <stdlib.h>
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -43,13 +45,13 @@ enum {
 };
 
 struct cfg {
-    char *data;      /* currnt cfg data */
-    size_t len;      /* currnt cfg data length */
-    char *key;       /* current key */
-    size_t key_len;  /* current key length */
-    char *val;       /* current val */
-    size_t val_len;  /* current val length */
-    size_t lineno;   /* cfg lineno */
+    char *data;     /* currnt cfg data */
+    size_t len;     /* currnt cfg data length */
+    char *key;      /* current key */
+    size_t key_len; /* current key length */
+    char *val;      /* current val */
+    size_t val_len; /* current val length */
+    size_t lineno;  /* cfg lineno */
 };
 
 int cfg_get(struct cfg *cfg);

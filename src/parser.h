@@ -5,7 +5,7 @@
  */
 
 #ifndef _CW_PARSER_H
-#define _CW_PARSER_H       1
+#define _CW_PARSER_H 1
 
 #include <stddef.h>
 
@@ -14,10 +14,10 @@ extern "C" {
 #endif
 
 struct parser_result {
-    char *key;           /* parsed key */
-    size_t len;          /* parsed key len */
-    char *block;         /* parsed block */
-    size_t blen;         /* parsed block len */
+    char *key;   /* parsed key */
+    size_t len;  /* parsed key len */
+    char *block; /* parsed block */
+    size_t blen; /* parsed block len */
 };
 
 /**

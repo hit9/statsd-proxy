@@ -6,7 +6,9 @@ CFLAGS=
 LDFLAGS=-pthread
 SRC:=$(wildcard *.c)
 EV_EPOLL=$(wildcard event_epoll.c)
+EV_TIMER=$(wildcard event_timer.c)
 SRC:=$(filter-out $(EV_EPOLL), $(SRC))
+SRC:=$(filter-out $(EV_TIMER), $(SRC))
 INC:=$(wildcard *.h)
 OBJ:=$(SRC:%.c=%.o)
 BIN:=$(NAME)

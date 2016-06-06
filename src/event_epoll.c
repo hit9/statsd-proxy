@@ -6,14 +6,15 @@
 #include <stdlib.h>
 #include <sys/epoll.h>
 #include <unistd.h>
+
 #include "event.h"
 
 #define EVENT_EPOLL_ALWAYS_ET 1
 
 struct event_api {
     int ep; /* epoll descriptor */
-    struct epoll_event
-        *events; /* struct epoll_events[], with size `loop->size` */
+    struct epoll_event *
+        events; /* struct epoll_events[], with size `loop->size` */
 };
 
 static int event_api_loop_new(struct event_loop *loop) {

@@ -43,13 +43,9 @@ Linux 3.9+.
 Build
 ------
 
-Just make:
-
+    $ ./autogen.sh
+    $ ./configure
     $ make
-
-or install it via npm:
-
-    npm install statsd-proxy -g
 
 Usage
 -----

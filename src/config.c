@@ -4,13 +4,14 @@
  * Proxy config.
  */
 
-#include "config.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "buf.h"
 #include "cfg.h"
+#include "config.h"
 #include "log.h"
 
 struct config *config_new(void) {

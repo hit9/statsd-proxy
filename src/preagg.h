@@ -12,6 +12,8 @@
 #define MAX_AGG_RULE_NUM 1024
 #define MAX_KEY_LENGTH 1024 * 16
 #define MAX_RULE_TYPE_LENGTH 10
+#define AGG_COPY_LEN 4
+#define AGG_REMOVE_LEN 5
 
 enum {
   AGG_OK = 0,            // operation is ok
@@ -21,6 +23,9 @@ enum {
 
   AGG_REMOVE = 4,  // Remove originnal stream
   AGG_COPY = 5,  // Default Operation, copy and throw a new parse_result object
+  AGG_ETYPE = 6,
+  AGG_ESPLIT = 7,
+  AGG_ETOOMUCH = 8,
 };
 
 struct agg_rule {
@@ -32,13 +37,13 @@ struct agg_rule {
 };
 
 struct agg_rules {
-  struct agg_rule **rules;
+  struct agg_rule rules[MAX_AGG_RULE_NUM] ;
   size_t rules_num;
 };
 
 struct agg_rules PREAGG_RULES;
 
-void load_preagg_rules(char *file, struct agg_rules *rules);
+int parse_preagg_rules(struct agg_rules *rules, const char* value, size_t value_len) ;
 
 int preagg(struct parser_result *result, struct parser_result *out_result);
 

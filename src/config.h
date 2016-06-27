@@ -9,6 +9,7 @@
 
 #include <unistd.h>
 #include "ketama.h"
+#include "preagg.h"
 
 #define KETAMA_NUM_NODES_MAX 1024
 #define KETAMA_NODE_KEY_LEN_MAX 32

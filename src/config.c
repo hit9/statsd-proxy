@@ -48,7 +48,6 @@ void config_free(struct config *c) {
 
 int config_init(struct config *c, const char *filename) {
     assert(c != NULL);
-
     struct buf *buf = buf_new(NULL);
 
     /* Read config file */
@@ -150,6 +149,19 @@ int config_init(struct config *c, const char *filename) {
             c->num_nodes++;
             log_debug("load config.node#%d udp://%s:%hu:%u", c->num_nodes, host,
                       port, weight);
+        }
+
+        if (strncmp("rule", cfg.key, cfg.key_len) == 0) {
+            int errn = parse_preagg_rules(&PREAGG_RULES, cfg.val, cfg.val_len);
+            if (errn != AGG_OK) {
+              log_error("invalid rule at line %d", cfg.lineno);
+              return CONFIG_EVALUE;
+            }
+            log_debug("load config.rule#%d %s->%s",
+                      cfg.lineno,
+                      PREAGG_RULES.rules[PREAGG_RULES.rules_num].prefix,
+                      PREAGG_RULES.rules[PREAGG_RULES.rules_num].to);
+            PREAGG_RULES.rules_num++;
         }
     }
 

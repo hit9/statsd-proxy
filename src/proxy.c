@@ -17,8 +17,7 @@
 #include "parser.h"
 #include "preagg.h"
 
-int
-send_to_buf ( struct ctx *ctx, struct parser_result *result, struct buf *sbuf);
+int send_to_buf ( struct ctx *ctx, struct parser_result *result, struct buf *sbuf);
 /* Start proxy in a thread. */
 void *thread_start(void *arg) {
     struct ctx *ctx = arg;

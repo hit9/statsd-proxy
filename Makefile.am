@@ -7,6 +7,7 @@ statsd_proxy_SOURCES=src/buf.c \
 					 src/ketama.c \
 					 src/log.c \
 					 src/md5.c \
+					 src/preagg.c \
 					 src/parser.c \
 					 src/proxy.c \
 					 src/statsd-proxy.c

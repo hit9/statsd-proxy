@@ -18,7 +18,6 @@
 #include "proxy.h"
 
 #include "config.h"
-#include "preagg.h"
 
 #define STATSD_PROXY_VERSION "0.1.0"
 
@@ -30,14 +29,12 @@ int main(int argc, char *argv[]) {
     log_open("statsd-proxy", NULL, 0);
 
     char *filename;
-    char *aggfilename;
 
-    const char *short_opt = "hvdp:f:";
+    const char *short_opt = "hvdf:";
     struct option long_opt[] = {
         {"help", no_argument, NULL, 'h'},
         {"version", no_argument, NULL, 'v'},
         {"debug", no_argument, NULL, 'd'},
-        {"preagg", required_argument, NULL, 'p'},
         {"file", required_argument, NULL, 'f'},
         {NULL, 0, NULL, 0},
     };
@@ -56,9 +53,6 @@ int main(int argc, char *argv[]) {
             case 'f':
                 filename = optarg;
                 break;
-            case 'p':
-                aggfilename = optarg;
-                break;
             case 'd':
                 log_setlevel(LOG_DEBUG);
                 break;
@@ -69,7 +63,6 @@ int main(int argc, char *argv[]) {
 
     if (argc == 1 || optind < argc) usage();
 
-    load_preagg_rules(aggfilename, &PREAGG_RULES);
     struct config *config = config_new();
 
     if (config == NULL) exit(1);
@@ -95,7 +88,6 @@ void usage(void) {
     fprintf(stderr, "  -h, --help            Show this message\n");
     fprintf(stderr, "  -v, --version         Show version\n");
     fprintf(stderr, "  -d, --debug           Enable debug logging\n");
-    fprintf(stderr, "  -p, --preagg agg.fg   Preagg config file\n");
     fprintf(stderr, "Copyright (c) https://github.com/hit9/statsd-proxy\n");
     exit(1);
 }

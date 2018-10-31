@@ -20,7 +20,7 @@
 
 /* Create ctx, init client/server sockets and ketama ring. */
 struct ctx *ctx_new(struct ketama_node *nodes, size_t num_nodes,
-                    unsigned short port, uint32_t flush_interval) {
+                    unsigned short port, uint32_t flush_interval, long socket_receive_bufsize) {
     assert(nodes != NULL);
 
     /* Create ctx */
@@ -92,6 +92,7 @@ struct ctx *ctx_new(struct ketama_node *nodes, size_t num_nodes,
     ctx->sbufs = sbufs;
     ctx->num_nodes = num_nodes;
     ctx->flush_interval = flush_interval;
+    ctx->socket_receive_bufsize = socket_receive_bufsize;
     return ctx;
 }
 
@@ -160,6 +161,21 @@ int ctx_init(struct ctx *ctx) {
     int optval = 1;
     setsockopt(ctx->sfd, SOL_SOCKET, SO_REUSEPORT, (const void *)&optval,
                sizeof(int));
+    if (ctx->socket_receive_bufsize > 0) {
+        log_debug("Got non-zero socket_receive_bufsize.  Setting SO_RCVBUF to %ld...", ctx->socket_receive_bufsize);
+        setsockopt(ctx->sfd, SOL_SOCKET, SO_RCVBUF, &ctx->socket_receive_bufsize, sizeof(ctx->socket_receive_bufsize));
+        long actual_bufsize;
+        socklen_t buflen = sizeof(actual_bufsize);
+        if (getsockopt(ctx->sfd, SOL_SOCKET, SO_RCVBUF, &actual_bufsize, &buflen) == 0) {
+            if (actual_bufsize != ctx->socket_receive_bufsize * KERNEL_ADDED_OVERHEAD_FACTOR) {
+                log_warn("unable to set socket_receive_bufsize to %ld.  buffer was reset to %ld", ctx->socket_receive_bufsize, actual_bufsize);
+            }
+            log_debug("SO_RCVBUF ultimately set to %ld", actual_bufsize);
+        }
+        else {
+            log_warn("unable to read socket buffer size: %s", strerror(errno));
+        }
+    }
 
     if (ctx->sfd < 0) {
         close(ctx->cfd);

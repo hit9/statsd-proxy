@@ -22,6 +22,7 @@ struct config *config_new(void) {
     c->port = 8125;
     c->num_threads = 4;
     c->flush_interval = 10;
+    c->socket_receive_bufsize = 0;
 
     int i;
 
@@ -127,6 +128,18 @@ int config_init(struct config *c, const char *filename) {
 
             c->flush_interval = (uint32_t)flush_interval;
             log_debug("load config.flush_interval => %ldms", c->flush_interval);
+        }
+
+        if (strncmp("socket_receive_bufsize", cfg.key, cfg.key_len) == 0) {
+            long socket_receive_bufsize = strtol(s, NULL, 10);
+
+            if (socket_receive_bufsize <= 0) {
+                log_error("invalid socket_receive_bufsize at line %d", cfg.lineno);
+                return CONFIG_EVALUE;
+            }
+
+            c->socket_receive_bufsize = socket_receive_bufsize;
+            log_debug("load config.socket_receive_bufsize => %ld", c->socket_receive_bufsize);
         }
 
         if (strncmp("node", cfg.key, cfg.key_len) == 0) {

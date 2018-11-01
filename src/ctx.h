@@ -4,6 +4,11 @@
  * Proxy thread context.
  */
 
+
+#ifndef KERNEL_ADDED_OVERHEAD_FACTOR
+#define KERNEL_ADDED_OVERHEAD_FACTOR 2  // socket(7) man page indicates that the kernel doubles the size of SO_RCVBUF when set by setsockopt()
+#endif
+
 #ifndef _CW_CTX_H
 #define _CW_CTX_H 1
 
@@ -28,6 +33,7 @@ struct ctx {
     int sfd;                 /* server udp socket fd */
     unsigned short port;     /* server port to bind */
     uint32_t flush_interval; /* buffer flush interval */
+    long socket_receive_bufsize; /* socket receive buffer size in bytes */
     size_t num_nodes;        /* number of ketama nodes */
     struct ketama_node *
         nodes; /* ketama nodes ref (shared by multiple threads, read only) */
@@ -38,7 +44,7 @@ struct ctx {
 };
 
 struct ctx *ctx_new(struct ketama_node *nodes, size_t num_nodes,
-                    unsigned short port, uint32_t flush_interval);
+                    unsigned short port, uint32_t flush_interval, long socket_receive_bufsize);
 void ctx_free(struct ctx *ctx);
 int ctx_init(struct ctx *ctx);
 

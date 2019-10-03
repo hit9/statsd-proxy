@@ -15,7 +15,9 @@
 #include "ketama.h"
 #include "log.h"
 #include "parser.h"
+#include "preagg.h"
 
+int send_to_buf ( struct ctx *ctx, struct parser_result *result, struct buf *sbuf);
 /* Start proxy in a thread. */
 void *thread_start(void *arg) {
     struct ctx *ctx = arg;
@@ -126,28 +128,30 @@ int relay_buf(struct ctx *ctx) {
     if (ctx->buf->len == 0) return PROXY_OK;
 
     struct parser_result result;
+    struct parser_result agg_result;
     int n, n_parsed = 0;
     char *data = ctx->buf->data;
     size_t len = ctx->buf->len;
-    struct ketama_node *node;
-    struct sockaddr_in addr;
     struct buf *sbuf = NULL;
-
+    int errn = 0;
     while ((n = parse(&result, data, len)) > 0) {
-        node = ketama_node_iget(ctx->ring, result.key, result.len);
+        // send the result to buf
+        int ret = preagg(&result, &agg_result) ;
+        if (ret != AGG_NOAGG) {
+            errn = send_to_buf(ctx, &agg_result, sbuf);
+            free(agg_result.block);
+            agg_result.block = NULL;
+            agg_result.key = NULL;
+            agg_result.len = 0;
+            agg_result.blen = 0;
+            if (errn != PROXY_OK)
+                return errn;
 
-        sbuf = ctx->sbufs[node->idx];
-        addr = ctx->addrs[node->idx];
-
-        if (sbuf->len > 0 && buf_putc(sbuf, '\n') != BUF_OK)
-            return PROXY_ENOMEM;
-
-        if (buf_put(sbuf, result.block, result.blen) != BUF_OK)
-            return PROXY_ENOMEM;
-
-        /* flush buffer if this buf is large enough */
-        if (sbuf->len >= BUF_SEND_UNIT) send_buf(ctx, addr, sbuf, node->key);
-
+            if (ret != AGG_REMOVE) {
+                if ((errn = send_to_buf(ctx, &result, sbuf) ) != PROXY_OK)
+                    return errn;
+            }
+        }
         data += n;
         len -= n;
         n_parsed += n;
@@ -155,6 +159,26 @@ int relay_buf(struct ctx *ctx) {
 
     buf_lrm(ctx->buf, n_parsed);
     return PROXY_OK;
+}
+
+int send_to_buf (struct ctx *ctx, struct parser_result *result, struct buf *sbuf) {
+  struct ketama_node *node;
+  struct sockaddr_in addr;
+  node = ketama_node_iget(ctx->ring, result->key, result->len);
+
+  sbuf = ctx->sbufs[node->idx];
+  addr = ctx->addrs[node->idx];
+
+
+  if (sbuf->len > 0 && buf_putc(sbuf, '\n') != BUF_OK)
+    return PROXY_ENOMEM;
+
+  if (buf_put(sbuf, result->block, result->blen) != BUF_OK)
+    return PROXY_ENOMEM;
+
+  /* flush buffer if this buf is large enough */
+  if (sbuf->len >= BUF_SEND_UNIT) send_buf(ctx, addr, sbuf, node->key);
+  return PROXY_OK;
 }
 
 /* Flush buffers on interval. */

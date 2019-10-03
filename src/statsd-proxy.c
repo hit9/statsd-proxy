@@ -85,9 +85,9 @@ void usage(void) {
     fprintf(stderr, "Usage:\n");
     fprintf(stderr, "  ./statsd-proxy -f ./path/to/config.cfg\n");
     fprintf(stderr, "Options:\n");
-    fprintf(stderr, "  -h, --help        Show this message\n");
-    fprintf(stderr, "  -v, --version     Show version\n");
-    fprintf(stderr, "  -d, --debug       Enable debug logging\n");
+    fprintf(stderr, "  -h, --help            Show this message\n");
+    fprintf(stderr, "  -v, --version         Show version\n");
+    fprintf(stderr, "  -d, --debug           Enable debug logging\n");
     fprintf(stderr, "Copyright (c) https://github.com/hit9/statsd-proxy\n");
     exit(1);
 }

@@ -13,6 +13,7 @@
 #include "cfg.h"
 #include "config.h"
 #include "log.h"
+#include "proxy.h"
 
 struct config *config_new(void) {
     struct config *c = malloc(sizeof(struct config));
@@ -23,6 +24,7 @@ struct config *config_new(void) {
     c->num_threads = 4;
     c->flush_interval = 10;
     c->socket_receive_bufsize = 0;
+    c->socket_send_packet_size = BUF_SEND_UNIT;
 
     int i;
 
@@ -140,6 +142,18 @@ int config_init(struct config *c, const char *filename) {
 
             c->socket_receive_bufsize = socket_receive_bufsize;
             log_debug("load config.socket_receive_bufsize => %ld", c->socket_receive_bufsize);
+        }
+
+        if (strncmp("socket_send_packet_size", cfg.key, cfg.key_len) == 0) {
+            uint32_t socket_send_packet_size = strtol(s, NULL, 10);
+
+            if (socket_send_packet_size <= 0) {
+                log_error("invalid socket_send_packet_size at line %d", cfg.lineno);
+                return CONFIG_EVALUE;
+            }
+
+            c->socket_send_packet_size = socket_send_packet_size;
+            log_debug("load config.socket_send_packet_size => %ld", c->socket_send_packet_size);
         }
 
         if (strncmp("node", cfg.key, cfg.key_len) == 0) {

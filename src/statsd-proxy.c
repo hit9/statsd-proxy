@@ -106,7 +106,7 @@ void start(struct config *config) {
 
     for (i = 0; i < config->num_threads; i++) {
         if ((ctxs[i] = ctx_new(config->nodes, config->num_nodes, config->port,
-                               config->flush_interval, config->socket_receive_bufsize)) == NULL)
+                               config->flush_interval, config->socket_receive_bufsize, config->socket_send_packet_size)) == NULL)
             exit(1);
         pthread_create(&threads[i], NULL, &thread_start, ctxs[i]);
     }

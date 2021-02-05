@@ -34,6 +34,7 @@ struct ctx {
     unsigned short port;     /* server port to bind */
     uint32_t flush_interval; /* buffer flush interval */
     long socket_receive_bufsize; /* socket receive buffer size in bytes */
+    uint32_t socket_send_packet_size; /* socket send packet size in bytes */
     size_t num_nodes;        /* number of ketama nodes */
     struct ketama_node *
         nodes; /* ketama nodes ref (shared by multiple threads, read only) */
@@ -44,7 +45,7 @@ struct ctx {
 };
 
 struct ctx *ctx_new(struct ketama_node *nodes, size_t num_nodes,
-                    unsigned short port, uint32_t flush_interval, long socket_receive_bufsize);
+                    unsigned short port, uint32_t flush_interval, long socket_receive_bufsize, uint32_t socket_send_packet_size);
 void ctx_free(struct ctx *ctx);
 int ctx_init(struct ctx *ctx);
 

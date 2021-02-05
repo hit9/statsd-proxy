@@ -146,7 +146,7 @@ int relay_buf(struct ctx *ctx) {
             return PROXY_ENOMEM;
 
         /* flush buffer if this buf is large enough */
-        if (sbuf->len >= BUF_SEND_UNIT) send_buf(ctx, addr, sbuf, node->key);
+        if (sbuf->len >= ctx->socket_send_packet_size) send_buf(ctx, addr, sbuf, node->key);
 
         data += n;
         len -= n;

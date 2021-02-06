@@ -20,7 +20,7 @@
 
 /* Create ctx, init client/server sockets and ketama ring. */
 struct ctx *ctx_new(struct ketama_node *nodes, size_t num_nodes,
-                    unsigned short port, uint32_t flush_interval, long socket_receive_bufsize) {
+                    unsigned short port, uint32_t flush_interval, long socket_receive_bufsize, uint32_t socket_send_packet_size) {
     assert(nodes != NULL);
 
     /* Create ctx */
@@ -93,6 +93,7 @@ struct ctx *ctx_new(struct ketama_node *nodes, size_t num_nodes,
     ctx->num_nodes = num_nodes;
     ctx->flush_interval = flush_interval;
     ctx->socket_receive_bufsize = socket_receive_bufsize;
+    ctx->socket_send_packet_size = socket_send_packet_size;
     return ctx;
 }
 

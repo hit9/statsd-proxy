@@ -29,6 +29,7 @@ struct config {
     size_t num_nodes;
     uint32_t flush_interval;
     long socket_receive_bufsize;
+    uint32_t socket_send_packet_size;
     struct ketama_node nodes[KETAMA_NUM_NODES_MAX];
 };
 
